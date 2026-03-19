@@ -33,7 +33,7 @@ $courseid = required_param('courseid', PARAM_INT);
 require_course_login($courseid);
 
 $context = context_course::instance($courseid);
-require_capability('local/groupmerge:use', $context);
+require_capability('local/groupmerge:manage', $context);
 $url = new moodle_url('/local/groupmerge/groupmerge_config.php', ['courseid' => $courseid]);
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -41,28 +41,13 @@ $PAGE->add_body_class('limitedwidth');
 
 $strtitle = get_string('plugintitle', 'local_groupmerge');
 $PAGE->set_title($strtitle);
-$PAGE->set_heading($strtitle);
-$PAGE->navbar->add($strtitle);
-
-$returnurl = new moodle_url('/group/index.php', ['id' => $courseid]);
-
-
-
-$groupmergeconfigform = new \local_groupmerge\form\groupmerge_config_form(null, ['courseid' => $courseid]);
-
-// Standard form processing if statement.
-if ($groupmergeconfigform->is_cancelled()) {
-    redirect($returnurl);
-} else if ($data = $groupmergeconfigform->get_data()) {
-    utils::handle_config_form_data($data);
-
-    redirect($PAGE->url, get_string('configupdated', 'local_groupmerge'));
-}
 
 echo $OUTPUT->header();
 echo $OUTPUT->render_participants_tertiary_nav(get_course($courseid));
 
-$groupmergeconfigform->set_data(utils::get_data_for_configform($courseid));
-$groupmergeconfigform->display();
+$PAGE->requires->js_call_amd('local_groupmerge/mapping_table', 'init');
+
+$mappingtable = new \local_groupmerge\output\mapping_table($courseid);
+echo $OUTPUT->render($mappingtable);
 
 echo $OUTPUT->footer();

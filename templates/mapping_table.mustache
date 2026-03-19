@@ -1,0 +1,95 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_groupmerge/mapping_table
+
+    Renders a table of group merge mappings.
+
+    Example context (json):
+    {
+        "courseid": 1,
+        "canaddmapping": true,
+        "mappings": [
+            {
+                "targetgroup": {
+                    "id": 1,
+                    "name": "Target Group A"
+                },
+                "sourcegroups": [
+                    {"id": 10, "name": "Source Group 1"},
+                    {"id": 11, "name": "Source Group 2"}
+                ]
+            }
+        ]
+    }
+}}
+
+<div id="local_groupmerge-mapping-table" data-courseid="{{courseid}}">
+{{^canaddmapping}}
+<div class="alert alert-warning d-flex align-items-center flex-column gap-3">
+    <div>{{#str}} notenoughgroups, local_groupmerge {{/str}}</div>
+    <div><a href="{{config.wwwroot}}/group/index.php?id={{courseid}}" class="btn btn-secondary">{{#str}} managegroups, local_groupmerge {{/str}}</a></div>
+</div>
+{{/canaddmapping}}
+{{#canaddmapping}}
+<div class="d-flex justify-content-end mb-2">
+    <button type="button" class="btn btn-primary" data-action="addmapping"
+            aria-label="{{#str}} addmapping, local_groupmerge {{/str}}"
+            title="{{#str}} addmapping, local_groupmerge {{/str}}">
+        {{#pix}} t/add, core {{/pix}} {{#str}} addmapping, local_groupmerge {{/str}}
+    </button>
+</div>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th scope="col">{{#str}} targetgroup, local_groupmerge {{/str}}</th>
+            <th scope="col">{{#str}} sourcegroups, local_groupmerge {{/str}}</th>
+            <th scope="col">{{#str}} actions {{/str}}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#mappings}}
+        <tr>
+            <td>
+                <span data-local_groupmerge-groupid="{{targetgroup.id}}">{{targetgroup.name}}</span>
+            </td>
+            <td>
+                {{#sourcegroups}}
+                    <div><span data-local_groupmerge-groupid="{{id}}">{{name}}</span></div>
+                {{/sourcegroups}}
+            </td>
+            <td>
+                <a href="#" data-action="edit" data-local_groupmerge-targetgroupid="{{targetgroup.id}}"
+                   aria-label="{{#str}} edit {{/str}}" title="{{#str}} edit {{/str}}">
+                    {{#pix}} t/edit, core, {{#str}} edit {{/str}} {{/pix}}
+                </a>
+                <a href="#" data-action="delete" data-local_groupmerge-targetgroupid="{{targetgroup.id}}"
+                   aria-label="{{#str}} delete {{/str}}" title="{{#str}} delete {{/str}}">
+                    {{#pix}} t/delete, core, {{#str}} delete {{/str}} {{/pix}}
+                </a>
+            </td>
+        </tr>
+        {{/mappings}}
+        {{^mappings}}
+        <tr>
+            <td colspan="3">{{#str}} nomappings, local_groupmerge {{/str}}</td>
+        </tr>
+        {{/mappings}}
+    </tbody>
+</table>
+{{/canaddmapping}}
+</div>

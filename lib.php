@@ -35,7 +35,7 @@ function local_groupmerge_extend_navigation_course(
         stdClass $course,
         context_course $context
 ) {
-    if (!has_capability('local/groupmerge:use', $context)) {
+    if (!has_capability('local/groupmerge:manage', $context)) {
         return;
     }
     $usersnode = $parentnode->find('users', navigation_node::TYPE_UNKNOWN);

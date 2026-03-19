@@ -37,17 +37,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class observers {
-
-    /**
-     * Updates the sync state of course config objects if a user is enroled into or unenroled from a course.
-     *
-     * @param user_enrolment_created|user_enrolment_deleted $event the enrolment event
-     */
-    public static function user_enrolment_created_or_deleted(user_enrolment_created|user_enrolment_deleted $event): void {
-        $courseid = $event->courseid;
-
-    }
-
     /**
      * Handles the event that a course group has been deleted.
      *
@@ -74,15 +63,5 @@ class observers {
         $groupid = $data['objectid'];
 
         // TODO Handle this
-    }
-
-    /**
-     * Observer for course_deleted event.
-     *
-     * @param course_deleted $event The course deleted event
-     */
-    public static function course_deleted(course_deleted $event): void {
-        $courseid = $event->objectid;
-
     }
 }

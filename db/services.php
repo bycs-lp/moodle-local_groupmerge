@@ -15,16 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version file for local_groupmerge.
+ * External service definitions for local_groupmerge.
  *
  * @package    local_groupmerge
- * @copyright  2025 ISB Bayern
+ * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2025090401;
-$plugin->requires = 2024042200;
-$plugin->component = 'local_groupmerge';
-$plugin->maturity = MATURITY_ALPHA;
+$functions = [
+    'local_groupmerge_delete_mapping' => [
+        'classname' => 'local_groupmerge\external\delete_mapping',
+        'description' => 'Delete all group mappings for a given target group in a course.',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'local/groupmerge:manage',
+    ],
+];
+
+

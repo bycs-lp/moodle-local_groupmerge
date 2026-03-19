@@ -16,7 +16,6 @@
 
 namespace local_groupmerge\local;
 
-use local_bycsauth\idmgroup;
 use stdClass;
 
 /**
@@ -28,31 +27,10 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class courseconfig {
-
-    /** @var int Constant representing that the local_groupmerge plugin is enabled for this course. */
-    const ENABLED = 1;
-    /** @var int Constant representing that the local_groupmerge plugin is disabled for this course. */
-    const DISABLED = 0;
-
-    /** @var int Constant representing that the current course does not need to be synced. */
-    const NO_SYNC_NEEDED = 0;
-    /** @var int Constant representing that the current course needs to be synced. */
-    const SYNC_NEEDED = 1;
-
-    /** @var int Constant representing that an IDM group type should not be synced. */
-    const SYNCMODE_DISABLED = 0;
-
-    /** @var int Constant representing that an IDM group type should be synced. */
-    const SYNCMODE_SYNC_ALL = 1;
-
     /** @var int The course id of the course which this courseconfig object is handling. */
     private int $courseid;
 
-    /** @var ?stdClass The database record if available. */
-    private ?stdClass $record = null;
 
-    /** @var bool Variable representing if a record exists yet. */
-    private bool $recordexists = false;
 
     /**
      * Simple constructor for this courseconfig object.

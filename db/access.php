@@ -26,9 +26,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-        'local/groupmerge:use' => [
+        'local/groupmerge:manage' => [
                 'riskbitmask' => RISK_PERSONAL | RISK_DATALOSS,
-                'captype' => 'read',
+                'captype' => 'write',
                 'contextlevel' => CONTEXT_COURSE,
                 'archetypes' => [
                         'editingteacher' => CAP_ALLOW,

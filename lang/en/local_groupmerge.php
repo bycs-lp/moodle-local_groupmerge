@@ -22,12 +22,22 @@
  * @author    Philipp Memmel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+$string['addmapping'] = 'Add group mapping';
 $string['configupdated'] = 'Configuration of automatic group merging updated.';
-$string['groupmerge:use'] = 'Use group merging';
+$string['deletemapping'] = 'Delete group mapping';
+$string['deletemapping_confirm'] = 'Are you sure you want to delete this group mapping? Members will no longer be synchronised.';
+$string['editmapping'] = 'Edit group mapping';
+$string['error_targetinsource'] = 'The target group must not be one of the source groups.';
+$string['groupmerge:manage'] = 'Manage group merge mappings';
+$string['managegroups'] = 'Manage groups';
+$string['nomappings'] = 'No group mappings defined yet.';
+$string['notenoughgroups'] = 'Group merging requires at least 2 groups in this course. Please create more groups first.';
 $string['pluginname'] = 'Group merging';
 $string['plugintitle'] = 'Merge groups';
 $string['privacy:metadata'] = 'This plugin does not store any personal data';
+$string['sourcegroups'] = 'Source groups';
 $string['sourcegroupids'] = 'source groups';
 $string['sourcegroupids_help'] = 'Choose the source groups. All participants of these groups will also be assigned to the selected target group. If participants will be added/removed to/from the source groups, they also will be added/removed to/from the target group.';
+$string['targetgroup'] = 'Target group';
 $string['targetgroupid'] = 'target group';
 $string['targetgroupid_help'] = 'Choose the group to which all participants of the selected source groups should be added. If participants will be added/removed to/from the source groups, they also will be added/removed to/from the target group.';
