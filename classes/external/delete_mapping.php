@@ -50,7 +50,8 @@ class delete_mapping extends external_api {
      * @return array Result with success status
      */
     public static function execute(int $targetgroupid): array {
-        global $DB;
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/group/lib.php');
 
         [
             'targetgroupid' => $targetgroupid,

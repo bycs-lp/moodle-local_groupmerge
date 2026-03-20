@@ -19,6 +19,7 @@ namespace local_groupmerge\output;
 use core\output\renderable;
 use core\output\renderer_base;
 use core\output\templatable;
+use local_groupmerge\local\utils;
 use stdClass;
 
 /**
@@ -42,42 +43,39 @@ class mapping_table implements renderable, templatable {
      * @return stdClass the template context
      */
     public function export_for_template(renderer_base $output) {
-        global $DB;
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
 
-        // Fetch all mappings where the target group belongs to this course.
-        $sql = "SELECT gm.id AS mappingid, gm.targetgroupid, tg.name AS targetgroupname,
-                       gm.sourcegroupid, sg.name AS sourcegroupname
-                  FROM {local_groupmerge_groupmapping} gm
-                  JOIN {groups} tg ON tg.id = gm.targetgroupid
-                  JOIN {groups} sg ON sg.id = gm.sourcegroupid
-                 WHERE tg.courseid = :courseid
-              ORDER BY tg.name, sg.name";
+        $grouped = utils::get_group_mappings_with_group_name($this->courseid);
 
-        $records = $DB->get_records_sql($sql, ['courseid' => $this->courseid]);
-
-        // Group records by target group.
-        $grouped = [];
-        foreach ($records as $record) {
-            $targetid = $record->targetgroupid;
-            if (!isset($grouped[$targetid])) {
-                $grouped[$targetid] = (object) [
-                    'targetgroup' => (object) [
-                        'id' => $targetid,
-                        'name' => $record->targetgroupname,
-                    ],
-                    'sourcegroups' => [],
-                ];
+        // Collect all unique group ids and count members once per group.
+        $groupids = [];
+        foreach ($grouped as $mapping) {
+            $groupids[$mapping->targetgroup->id] = true;
+            foreach ($mapping->sourcegroups as $sourcegroup) {
+                $groupids[$sourcegroup->id] = true;
             }
-            $grouped[$targetid]->sourcegroups[] = (object) [
-                'id' => $record->sourcegroupid,
-                'name' => $record->sourcegroupname,
-            ];
+        }
+        $membercounts = [];
+        foreach (array_keys($groupids) as $groupid) {
+            // Not superefficient to use a single query per group.
+            // However, we usually do not have that many mappings and the queries are fast, so using
+            // the core method is fine here.
+            $membercounts[$groupid] = count(groups_get_members($groupid, 'u.id'));
+        }
+
+        // Append member counts to group names.
+        foreach ($grouped as $mapping) {
+            $mapping->targetgroup->name .= ' (' . $membercounts[$mapping->targetgroup->id] . ')';
+            foreach ($mapping->sourcegroups as $sourcegroup) {
+                $sourcegroup->name .= ' (' . $membercounts[$sourcegroup->id] . ')';
+            }
         }
 
         $data = new stdClass();
         $data->courseid = $this->courseid;
         $data->canaddmapping = count(groups_get_all_groups($this->courseid)) >= 2;
-        $data->mappings = array_values($grouped);
+        $data->mappings = $grouped;
         return $data;
     }
 }

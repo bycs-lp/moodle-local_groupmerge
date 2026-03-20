@@ -28,7 +28,7 @@ import {getString} from 'core/str';
 import Notification from 'core/notification';
 
 const SELECTORS = {
-    ROOT: '#local_groupmerge-mapping-table',
+    TABLE: '#local_groupmerge-mapping-table',
     ADD_BUTTON: '[data-action="addmapping"]',
     EDIT_BUTTON: '[data-action="edit"]',
     DELETE_BUTTON: '[data-action="delete"]',
@@ -37,19 +37,32 @@ const SELECTORS = {
 const FORM_CLASS = 'local_groupmerge\\form\\mapping_form';
 
 /**
+ * Initialise event listeners for the mapping table.
+ */
+export const init = () => {
+    const table = document.querySelector(SELECTORS.TABLE);
+    if (!table) {
+        return;
+    }
+
+    const courseid = parseInt(table.dataset.courseid);
+    registerListeners(courseid);
+};
+
+/**
  * Open the mapping modal form.
  *
  * @param {number} courseid The course id
- * @param {number} targetgroupid The target group id (0 for new mapping)
+ * @param {number} currenttargetgroupid The current target group id (0 for new mapping, >0 for editing an existing one)
  */
-const openMappingForm = (courseid, targetgroupid) => {
-    const title = targetgroupid
+const openMappingForm = (courseid, currenttargetgroupid) => {
+    const title = currenttargetgroupid
         ? getString('editmapping', 'local_groupmerge')
         : getString('addmapping', 'local_groupmerge');
 
     const modalForm = new ModalForm({
         formClass: FORM_CLASS,
-        args: {courseid, targetgroupid},
+        args: {courseid, currenttargetgroupid},
         modalConfig: {title},
     });
     modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, () => window.location.reload());
@@ -74,44 +87,41 @@ const deleteMappingWithConfirmation = async(targetgroupid) => {
             args: {targetgroupid},
         }])[0];
         window.location.reload();
-    } catch {
-        // User cancelled.
+    } catch (error) {
+        // The saveCancelPromise rejects with 'cancel' when the user cancels the dialog.
+        if (error !== 'cancel') {
+            Notification.exception(error);
+        }
     }
 };
 
 /**
- * Initialise event listeners for the mapping table.
+ * Register all click listeners for the mapping table.
+ *
+ * @param {number} courseid The course id
  */
-export const init = () => {
-    const root = document.querySelector(SELECTORS.ROOT);
-    if (!root) {
-        return;
-    }
-
-    const courseid = parseInt(root.dataset.courseid);
-
-    root.addEventListener('click', (e) => {
-        const addButton = e.target.closest(SELECTORS.ADD_BUTTON);
-        if (addButton) {
+const registerListeners = (courseid) => {
+    const addButton = document.querySelector(SELECTORS.ADD_BUTTON);
+    if (addButton) {
+        addButton.addEventListener('click', (e) => {
             e.preventDefault();
             openMappingForm(courseid, 0);
-            return;
-        }
+        });
+    }
 
-        const editButton = e.target.closest(SELECTORS.EDIT_BUTTON);
-        if (editButton) {
+    document.querySelectorAll(SELECTORS.EDIT_BUTTON).forEach((editButton) => {
+        editButton.addEventListener('click', (e) => {
             e.preventDefault();
-            const targetgroupid = parseInt(editButton.dataset.local_groupmergeTargetgroupid);
-            openMappingForm(courseid, targetgroupid);
-            return;
-        }
+            const currenttargetgroupid = parseInt(editButton.dataset.local_groupmergeTargetgroupid);
+            openMappingForm(courseid, currenttargetgroupid);
+        });
+    });
 
-        const deleteButton = e.target.closest(SELECTORS.DELETE_BUTTON);
-        if (deleteButton) {
+    document.querySelectorAll(SELECTORS.DELETE_BUTTON).forEach((deleteButton) => {
+        deleteButton.addEventListener('click', (e) => {
             e.preventDefault();
             const targetgroupid = parseInt(deleteButton.dataset.local_groupmergeTargetgroupid);
             deleteMappingWithConfirmation(targetgroupid);
-        }
+        });
     });
 };
-

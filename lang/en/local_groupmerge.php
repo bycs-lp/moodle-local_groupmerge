@@ -23,10 +23,11 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 $string['addmapping'] = 'Add group mapping';
-$string['configupdated'] = 'Configuration of automatic group merging updated.';
 $string['deletemapping'] = 'Delete group mapping';
 $string['deletemapping_confirm'] = 'Are you sure you want to delete this group mapping? Members will no longer be synchronised.';
 $string['editmapping'] = 'Edit group mapping';
+$string['error_circular_mapping'] = 'This mapping would create a circular dependency (the target group is transitively a source group of one of the selected source groups).';
+$string['error_targetalreadymapped'] = 'This group already has a mapping. Please edit the existing mapping instead.';
 $string['error_targetinsource'] = 'The target group must not be one of the source groups.';
 $string['groupmerge:manage'] = 'Manage group merge mappings';
 $string['managegroups'] = 'Manage groups';

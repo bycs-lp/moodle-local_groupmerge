@@ -19,6 +19,7 @@ namespace local_groupmerge\form;
 use context;
 use context_course;
 use core_form\dynamic_form;
+use local_groupmerge\local\utils;
 use moodle_url;
 
 /**
@@ -35,16 +36,19 @@ class mapping_form extends dynamic_form {
      * Form definition.
      */
     protected function definition() {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
         $mform = $this->_form;
 
         $courseid = $this->optional_param('courseid', 0, PARAM_INT);
-        $targetgroupid = $this->optional_param('targetgroupid', 0, PARAM_INT);
+        $currenttargetgroupid = $this->optional_param('currenttargetgroupid', 0, PARAM_INT);
 
         $mform->addElement('hidden', 'courseid', $courseid);
         $mform->setType('courseid', PARAM_INT);
 
-        $mform->addElement('hidden', 'targetgroupid_original', $targetgroupid);
-        $mform->setType('targetgroupid_original', PARAM_INT);
+        $mform->addElement('hidden', 'currenttargetgroupid', $currenttargetgroupid);
+        $mform->setType('currenttargetgroupid', PARAM_INT);
 
         $groups = groups_get_all_groups($courseid);
         $groupoptions = [];
@@ -52,15 +56,28 @@ class mapping_form extends dynamic_form {
             $groupoptions[$group->id] = $group->name;
         }
 
-        $mform->addElement(
-            'select',
-            'targetgroupid',
-            get_string('targetgroupid', 'local_groupmerge'),
-            $groupoptions
-        );
-        $mform->addHelpButton('targetgroupid', 'targetgroupid', 'local_groupmerge');
-        $mform->addRule('targetgroupid', get_string('required'), 'required', null, 'client');
-        $mform->setType('targetgroupid', PARAM_INT);
+        if ($currenttargetgroupid > 0) {
+            // Edit mode: target group is fixed and cannot be changed.
+            $mform->addElement('hidden', 'targetgroupid', $currenttargetgroupid);
+            $mform->setType('targetgroupid', PARAM_INT);
+            $mform->addElement(
+                'static',
+                'targetgroupid_display',
+                get_string('targetgroupid', 'local_groupmerge'),
+                $groupoptions[$currenttargetgroupid] ?? $currenttargetgroupid
+            );
+        } else {
+            // Add mode: user selects the target group.
+            $mform->addElement(
+                'select',
+                'targetgroupid',
+                get_string('targetgroupid', 'local_groupmerge'),
+                $groupoptions
+            );
+            $mform->addHelpButton('targetgroupid', 'targetgroupid', 'local_groupmerge');
+            $mform->addRule('targetgroupid', get_string('required'), 'required', null, 'client');
+            $mform->setType('targetgroupid', PARAM_INT);
+        }
 
         $mform->addElement(
             'autocomplete',
@@ -104,13 +121,13 @@ class mapping_form extends dynamic_form {
         $data = $this->get_data();
         $clock = \core\di::get(\core\clock::class);
         $currenttime = $clock->time();
-        $targetgroupidoriginal = (int) $data->targetgroupid_original;
+        $currenttargetgroupid = (int) $data->currenttargetgroupid;
         $targetgroupid = (int) $data->targetgroupid;
         $sourcegroupids = $data->sourcegroupids;
 
         // If editing an existing mapping, remove old records for the original target group.
-        if ($targetgroupidoriginal > 0) {
-            $DB->delete_records('local_groupmerge_groupmapping', ['targetgroupid' => $targetgroupidoriginal]);
+        if ($currenttargetgroupid > 0) {
+            $DB->delete_records('local_groupmerge_groupmapping', ['targetgroupid' => $currenttargetgroupid]);
         }
 
         // Insert new mapping records.
@@ -132,17 +149,18 @@ class mapping_form extends dynamic_form {
     public function set_data_for_dynamic_submission(): void {
         global $DB;
 
-        $targetgroupid = $this->optional_param('targetgroupid', 0, PARAM_INT);
+        $courseid = $this->optional_param('courseid', 0, PARAM_INT);
+        $currenttargetgroupid = $this->optional_param('currenttargetgroupid', 0, PARAM_INT);
+
         $data = [
-            'courseid' => $this->optional_param('courseid', 0, PARAM_INT),
-            'targetgroupid_original' => $targetgroupid,
+            'courseid' => $courseid,
+            'currenttargetgroupid' => $currenttargetgroupid,
         ];
 
-        if ($targetgroupid > 0) {
-            $data['targetgroupid'] = $targetgroupid;
-            $records = $DB->get_records('local_groupmerge_groupmapping', ['targetgroupid' => $targetgroupid]);
+        if ($currenttargetgroupid > 0) {
+            $sourcerecords = $DB->get_records('local_groupmerge_groupmapping', ['targetgroupid' => $currenttargetgroupid]);
             $data['sourcegroupids'] = array_values(
-                array_map(fn($record) => $record->sourcegroupid, $records)
+                array_map(fn($record) => $record->sourcegroupid, $sourcerecords)
             );
         }
 
@@ -167,14 +185,51 @@ class mapping_form extends dynamic_form {
      * @return array
      */
     public function validation($data, $files): array {
+        global $DB;
+
         $errors = parent::validation($data, $files);
 
         $targetgroupid = (int) $data['targetgroupid'];
-        $sourcegroupids = $data['sourcegroupids'] ?? [];
+        $sourcegroupids = array_map('intval', $data['sourcegroupids'] ?? []);
+        $currenttargetgroupid = (int) ($data['currenttargetgroupid'] ?? 0);
+        $courseid = (int) $data['courseid'];
 
-        // Target group must not be in source groups.
-        if (in_array($targetgroupid, array_map('intval', $sourcegroupids))) {
+        // Target group must not be in source groups (direct self-loop).
+        if (in_array($targetgroupid, $sourcegroupids)) {
             $errors['sourcegroupids'] = get_string('error_targetinsource', 'local_groupmerge');
+        }
+
+        // Add mode: the chosen target group must not already have a mapping.
+        if ($currenttargetgroupid === 0) {
+            if ($DB->record_exists('local_groupmerge_groupmapping', ['targetgroupid' => $targetgroupid])) {
+                $errors['targetgroupid'] = get_string('error_targetalreadymapped', 'local_groupmerge');
+            }
+        }
+
+        // Check for transitive circular mappings (e.g. A→B, B→C, C→A).
+        if (empty($errors['sourcegroupids'])) {
+            $existingrecords = utils::get_mapping_records_for_course($courseid);
+
+            $existingmappings = [];
+            foreach ($existingrecords as $record) {
+                // Skip mappings being replaced in edit mode.
+                if ($currenttargetgroupid > 0 && (int) $record->targetgroupid === $currenttargetgroupid) {
+                    continue;
+                }
+                $existingmappings[] = [
+                    'sourcegroupid' => (int) $record->sourcegroupid,
+                    'targetgroupid' => (int) $record->targetgroupid,
+                ];
+            }
+
+            $newmappings = array_map(
+                fn($sid) => ['sourcegroupid' => $sid, 'targetgroupid' => $targetgroupid],
+                $sourcegroupids
+            );
+
+            if (utils::has_circular_mapping(array_merge($existingmappings, $newmappings))) {
+                $errors['sourcegroupids'] = get_string('error_circular_mapping', 'local_groupmerge');
+            }
         }
 
         return $errors;

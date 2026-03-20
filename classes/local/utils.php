@@ -29,65 +29,67 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class utils {
-
     /**
-     * Handles the form data after being submitted by the {@see \local_groupmerge\form\groupmerge_config_form}.
+     * Get all group mappings for a course, grouped by target group, with resolved group names.
      *
-     * @param stdClass $data The form data that has been submitted
+     * Returns an array of mapping objects, each containing a 'targetgroup' object (with id and name)
+     * and a 'sourcegroups' array of objects (each with id and name). Results are sorted by target
+     * group name, source groups within each mapping are sorted by name.
+     *
+     * @param int $courseid The course id
+     * @return array Array of mapping objects with targetgroup and sourcegroups
      */
-    public static function handle_config_form_data(stdClass $data): void {
+    public static function get_group_mappings_with_group_name(int $courseid): array {
         global $DB;
-        $courseid = intval($data->courseid);
-        $clock = \core\di::get(\core\clock::class);
-        // The array $data->targetgroupid will always at least contain one element.
 
-        foreach ($data->targetgroupid as $i => $elementtargetgroupid) {
-            $existingtargetgroupidmappings =
-                    $DB->get_records('local_groupmerge_groupmapping', ['targetgroupid' => $elementtargetgroupid]);
-            foreach ($data->sourcegroupids[$i] as $elementsourcegroupid) {
-                if (!in_array($elementsourcegroupid,
-                        array_map(fn($record) => $record->sourcegroupid, $existingtargetgroupidmappings))) {
-                    $record = new \stdClass();
-                    $record->sourcegroupid = $elementsourcegroupid;
-                    $record->targetgroupid = $elementtargetgroupid;
-                    $currenttime = $clock->time();
-                    $record->timecreated = $currenttime;
-                    $record->timemodified = $currenttime;
-                    $DB->insert_record('local_groupmerge_groupmapping', $record);
-                }
+        $sql = "SELECT gm.id AS mappingid, gm.targetgroupid, tg.name AS targetgroupname,
+                       gm.sourcegroupid, sg.name AS sourcegroupname
+                  FROM {local_groupmerge_groupmapping} gm
+                  JOIN {groups} tg ON tg.id = gm.targetgroupid
+                  JOIN {groups} sg ON sg.id = gm.sourcegroupid
+                 WHERE tg.courseid = :courseid
+              ORDER BY tg.name, sg.name";
+
+        $records = $DB->get_records_sql($sql, ['courseid' => $courseid]);
+
+        // Group records by target group.
+        $grouped = [];
+        foreach ($records as $record) {
+            $targetid = $record->targetgroupid;
+            if (!isset($grouped[$targetid])) {
+                $grouped[$targetid] = (object) [
+                    'targetgroup' => (object) [
+                        'id' => $targetid,
+                        'name' => $record->targetgroupname,
+                    ],
+                    'sourcegroups' => [],
+                ];
             }
+            $grouped[$targetid]->sourcegroups[] = (object) [
+                'id' => $record->sourcegroupid,
+                'name' => $record->sourcegroupname,
+            ];
         }
 
+        return array_values($grouped);
     }
 
     /**
-     * Method to get the data to inject into the {@see \local_groupmerge\form\groupmerge_config_form} before loading.
+     * Get all mapping records (sourcegroupid, targetgroupid) for a given course.
      *
-     * @param int $courseid The course id of the course
-     * @return array Array of data to inject in to the form
+     * Returns raw mapping records joined via the groups table to filter by course.
+     *
+     * @param int $courseid The course id
+     * @return array Array of records with sourcegroupid and targetgroupid
      */
-    public static function get_data_for_configform(int $courseid): array {
-        $mappings = self::get_mappings_for_course($courseid);
-        $data = ['sourcegroupids' => [
-                0 => [3, 4],
-                1 => [5, 6]
-        ]];
-        return $data;
-        /*$courseconfig = new courseconfig($courseid);
-        $data = [];
-        if ($courseconfig->record_exists(false)) {
-            $data['enabled'] = $courseconfig->is_enabled();
-            $data['class'] = $courseconfig->get_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['class']);
-            $data['team'] = $courseconfig->get_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['team']);
-            $data['classunit'] = $courseconfig->get_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['classunit']);
+    public static function get_mapping_records_for_course(int $courseid): array {
+        global $DB;
 
-            $idmgroupstosync = $courseconfig->get_idmgroups_to_sync();
-            $data['enable_customidmgroups'] = !empty($idmgroupstosync);
-            $data['customidmgroups'] = $courseconfig->get_currently_synced_groupids();
-
-            $data['cleanupgroups'] = $courseconfig->get_cleanup_groups();
-        }
-        return $data;*/
+        $sql = "SELECT gm.id, gm.sourcegroupid, gm.targetgroupid
+                  FROM {local_groupmerge_groupmapping} gm
+                  JOIN {groups} g ON g.id = gm.targetgroupid
+                 WHERE g.courseid = :courseid";
+        return $DB->get_records_sql($sql, ['courseid' => $courseid]);
     }
 
     public static function get_mappings_for_course(int $courseid): array {
@@ -96,5 +98,56 @@ class utils {
                 "SELECT gm.id, gm.sourcegroupid, gm.targetgroupid FROM {local_groupmerge_groupmapping} gm JOIN {groups} g ON gm.targetgroupid = g.id WHERE g.courseid = :courseid";
         $params = ['courseid' => $courseid];
         return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Checks whether the given set of mappings contains a circular dependency.
+     *
+     * Each mapping is an associative array with integer keys 'sourcegroupid' and 'targetgroupid'.
+     * A cycle means that some group would transitively become its own source group.
+     *
+     * @param array $mappings Mappings to check as [['sourcegroupid' => int, 'targetgroupid' => int], ...]
+     * @return bool true if a circular dependency exists, false otherwise
+     */
+    public static function has_circular_mapping(array $mappings): bool {
+        // Build directed graph: source → [targets].
+        $graph = [];
+        foreach ($mappings as $mapping) {
+            $src = (int) $mapping['sourcegroupid'];
+            $tgt = (int) $mapping['targetgroupid'];
+            $graph[$src][] = $tgt;
+        }
+
+        // Detect cycles via DFS with an explicit recursion stack.
+        $visited = [];
+        $instack = [];
+        $hascycle = false;
+
+        $dfs = function(int $node) use (&$dfs, &$graph, &$visited, &$instack, &$hascycle): void {
+            $visited[$node] = true;
+            $instack[$node] = true;
+            foreach ($graph[$node] ?? [] as $neighbor) {
+                if ($hascycle) {
+                    return;
+                }
+                if (!isset($visited[$neighbor])) {
+                    $dfs($neighbor);
+                } else if (!empty($instack[$neighbor])) {
+                    $hascycle = true;
+                }
+            }
+            $instack[$node] = false;
+        };
+
+        foreach (array_keys($graph) as $node) {
+            if (!isset($visited[$node])) {
+                $dfs($node);
+            }
+            if ($hascycle) {
+                break;
+            }
+        }
+
+        return $hascycle;
     }
 }

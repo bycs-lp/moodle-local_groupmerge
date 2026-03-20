@@ -27,14 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $observers = [
         [
-                'eventname' => '\core\event\user_enrolment_created',
-                'callback' => '\local_groupmerge\local\observers::user_enrolment_created_or_deleted',
-        ],
-        [
-                'eventname' => '\core\event\user_enrolment_deleted',
-                'callback' => '\local_groupmerge\local\observers::user_enrolment_created_or_deleted',
-        ],
-        [
                 'eventname' => '\core\event\group_deleted',
                 'callback' => '\local_groupmerge\local\observers::group_deleted',
         ],

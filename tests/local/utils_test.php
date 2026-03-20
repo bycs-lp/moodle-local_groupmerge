@@ -16,9 +16,6 @@
 
 namespace local_groupmerge\local;
 
-use local_bycsauth\idmgroup;
-use local_bycsauth\school;
-
 /**
  * Unit tests for the utils class of local_groupmerge.
  *
@@ -26,168 +23,250 @@ use local_bycsauth\school;
  * @copyright 2025 ISB Bayern
  * @author    Philipp Memmel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers    \local_groupmerge\local\utils
  */
 final class utils_test extends \advanced_testcase {
-
     /**
-     * Tests the mark_courses_for_syncing method.
+     * Data provider for {@see test_has_circular_mapping}.
+     *
+     * @return array
      */
-    public function test_mark_courses_for_syncing(): void {
-        $this->resetAfterTest();
-        $schoolid = '1234';
-        $this->getDataGenerator()->create_category(['idnumber' => $schoolid]);
-        $school = new school($schoolid);
-        $school->set_schooltype(school::get_schooltype_id('RS'));
-        $school->link_school_category();
-        $school->set_name('Test school');
-        $school->store();
-        $idmgroup1 = idmgroup::create_from_groupinfo(
-                '36855b1b-52bc-4767-8d70-a9d9275948ef=Klasse 5a',
-                idmgroup::IDM_GROUP_TYPE['class'],
-                $schoolid
-        );
-        $idmgroup1->store();
-        $idmgroup2 = idmgroup::create_from_groupinfo(
-                'c5c7f8a3-a88a-433c-ac38-69b6234fe2ec=Video-AG',
-                idmgroup::IDM_GROUP_TYPE['team'],
-                $schoolid
-        );
-        $idmgroup2->store();
-
-        $userdata = [
-                'institution' => $schoolid,
+    public static function has_circular_mapping_provider(): array {
+        return [
+            'empty_graph' => [
+                'mappings' => [],
+                'expected' => false,
+            ],
+            'multiple_sources_to_one_target' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 3],
+                    ['sourcegroupid' => 2, 'targetgroupid' => 3],
+                ],
+                'expected' => false,
+            ],
+            'simple_chain_A->B->C' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 2],
+                    ['sourcegroupid' => 2, 'targetgroupid' => 3],
+                ],
+                'expected' => false,
+            ],
+            'direct_cycle_A->B_B->A' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 2],
+                    ['sourcegroupid' => 2, 'targetgroupid' => 1],
+                ],
+                'expected' => true,
+            ],
+            'three_transition_cycle_A->B->C->A' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 2],
+                    ['sourcegroupid' => 2, 'targetgroupid' => 3],
+                    ['sourcegroupid' => 3, 'targetgroupid' => 1],
+                ],
+                'expected' => true,
+            ],
+            'chain_extended_without_closing_cycle' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 2],
+                    ['sourcegroupid' => 2, 'targetgroupid' => 3],
+                    ['sourcegroupid' => 4, 'targetgroupid' => 3],
+                ],
+                'expected' => false,
+            ],
+            'independent_chains_no_cycle' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 2],
+                    ['sourcegroupid' => 3, 'targetgroupid' => 4],
+                    ['sourcegroupid' => 5, 'targetgroupid' => 6],
+                ],
+                'expected' => false,
+            ],
         ];
-        $userdata['idnumber'] = '005e8c96-20fb-49b7-856f-1b19b58f0e62';
-        $user1 = $this->getDataGenerator()->create_user($userdata);
-        $userdata['idnumber'] = '9cdce1f4-81a0-4cfb-b8a1-a9f1257e3683';
-        $user2 = $this->getDataGenerator()->create_user($userdata);
-        $userdata['idnumber'] = '54ad8503-3d54-4ab5-bf57-e925fa9e74fd';
-        $user3 = $this->getDataGenerator()->create_user($userdata);
-        $userdata['idnumber'] = '9e19a27d-d15b-49f4-9cef-1aad5846e04c';
-        $user4 = $this->getDataGenerator()->create_user($userdata);
-
-        $idmgroup1->assign_user($user1->id);
-        $idmgroup1->assign_user($user2->id);
-        $idmgroup2->assign_user($user1->id);
-        $idmgroup2->assign_user($user3->id);
-
-        $course1 = $this->getDataGenerator()->create_course();
-        // We enrol $user1, so this course will have a user assigned to both $idmgroup1 and $idmgroup2.
-        enrol_try_internal_enrol($course1->id, $user1->id);
-
-        $courseconfig1 = new courseconfig($course1->id);
-        $courseconfig1->set_enabled(true);
-        $courseconfig1->set_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['class'], courseconfig::SYNCMODE_SYNC_ALL);
-        $courseconfig1->set_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['team'], courseconfig::SYNCMODE_DISABLED);
-        $courseconfig1->store();
-
-        // Test $user1 and $idmgroup1. We expect that the course should have set the sync flag.
-        $this->assertFalse($courseconfig1->is_sync_needed());
-        ob_start();
-        utils::mark_courses_for_syncing($user1->id, $idmgroup1->get_externalid());
-        ob_end_clean();
-        $this->assertTrue($courseconfig1->is_sync_needed());
-
-        // Reset course config.
-        $courseconfig1->update_sync_state(courseconfig::NO_SYNC_NEEDED);
-
-        // Same user, but with $idmgroup2 which is of type "team" which is disabled in course config. We expect the course not to
-        // have the flag set.
-        $this->assertFalse($courseconfig1->is_sync_needed());
-        ob_start();
-        utils::mark_courses_for_syncing($user1->id, $idmgroup2->get_externalid());
-        ob_end_clean();
-        $this->assertFalse($courseconfig1->is_sync_needed());
-
-        // Now run function with $user2. This time $course1 should not be updated, because $user2 is not enrolled in this course.
-        $this->assertFalse($courseconfig1->is_sync_needed());
-        ob_start();
-        utils::mark_courses_for_syncing($user2->id, $idmgroup1->get_externalid());
-        ob_end_clean();
-        $this->assertFalse($courseconfig1->is_sync_needed());
-
-        // Now we change the sync modes. We define $idmgroup1 as "to be synced" in this course.
-        $courseconfig1->set_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['class'], courseconfig::SYNCMODE_DISABLED);
-        $courseconfig1->set_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['team'], courseconfig::SYNCMODE_DISABLED);
-        $courseconfig1->set_idmgroups_to_sync([$idmgroup1->get_id()]);
-        $courseconfig1->store();
-        $courseconfig1->update_sync_state(courseconfig::NO_SYNC_NEEDED);
-
-        // Now run the function with $user1 (which is enrolled) and $idmgroup1 (which should be synced). So we expect the flag to
-        // be set.
-        $this->assertFalse($courseconfig1->is_sync_needed());
-        ob_start();
-        utils::mark_courses_for_syncing($user1->id, $idmgroup1->get_externalid());
-        ob_end_clean();
-        $this->assertTrue($courseconfig1->is_sync_needed());
-
-        // Reset course config.
-        $courseconfig1->update_sync_state(courseconfig::NO_SYNC_NEEDED);
-
-        // Now run the function with $user1 (which is enrolled) and $idmgroup2 (which should not be synced). So we expect the flag
-        // not to be set.
-        $this->assertFalse($courseconfig1->is_sync_needed());
-        ob_start();
-        utils::mark_courses_for_syncing($user1->id, $idmgroup2->get_externalid());
-        ob_end_clean();
-        $this->assertFalse($courseconfig1->is_sync_needed());
-
-        // We now simulate a full sync of classes, then we disable the sync of classes.
-        $courseconfig1->set_enabled(true);
-        $courseconfig1->set_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['class'], courseconfig::SYNCMODE_SYNC_ALL);
-        $courseconfig1->set_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['team'], courseconfig::SYNCMODE_DISABLED);
-        $courseconfig1->store();
-        $groupsyncer = new group_syncer($course1->id);
-        $groupsyncer->sync_course();
-        $courseconfig1->set_idmgrouptype_syncmode(idmgroup::IDM_GROUP_TYPE['class'], courseconfig::SYNCMODE_DISABLED);
-        $courseconfig1->store();
-        $courseconfig1->update_sync_state(courseconfig::NO_SYNC_NEEDED);
-        $mappedcoursegroup = $courseconfig1->get_mapped_coursegroup($idmgroup1);
-        $this->assertNotEmpty($mappedcoursegroup);
-        // We now have the situation that we disabled the syncing, but groups are still mapped. So we expect the flag to be set so
-        // that this mapped group can eventually be removed.
-        $this->assertFalse($courseconfig1->is_sync_needed());
-        ob_start();
-        utils::mark_courses_for_syncing($user1->id, $idmgroup1->get_externalid());
-        ob_end_clean();
-        $this->assertTrue($courseconfig1->is_sync_needed());
     }
 
     /**
-     * Test the function that creates the name of a course group.
+     * Tests {@see utils::has_circular_mapping} with various graph configurations.
+     *
+     * @dataProvider has_circular_mapping_provider
+     * @covers \local_groupmerge\local\utils::has_circular_mapping
+     * @param array $mappings Full set of mappings as [['sourcegroupid' => int, 'targetgroupid' => int], ...]
+     * @param bool $expected Expected return value
      */
-    public function test_get_coursegroupname_for_idmgroup(): void {
+    public function test_has_circular_mapping(array $mappings, bool $expected): void {
+        $this->assertEquals($expected, utils::has_circular_mapping($mappings));
+    }
+
+    /**
+     * Tests {@see utils::get_mapping_records_for_course} returns no records for a course without mappings.
+     *
+     * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
+     */
+    public function test_get_mapping_records_for_course_empty(): void {
         $this->resetAfterTest();
-        $schoolid = '1234';
-        $this->getDataGenerator()->create_category(['idnumber' => $schoolid]);
-        $school = new school($schoolid);
-        $school->set_schooltype(school::get_schooltype_id('RS'));
-        $school->link_school_category();
-        $school->set_name('Test school');
-        $school->store();
-        $idmgroup = idmgroup::create_from_groupinfo(
-                '36855b1b-52bc-4767-8d70-a9d9275948ef=Klasse 5a',
-                idmgroup::IDM_GROUP_TYPE['class'],
-                $schoolid
-        );
-        $idmgroup->store();
-        $this->assertEquals('K - Klasse 5a (1234)', utils::get_coursegroupname_for_idmgroup($idmgroup));
+        $course = $this->getDataGenerator()->create_course();
 
-        $idmgroup2 = idmgroup::create_from_groupinfo(
-                '36855b1b-52bc-4767-8d70-a9d9275948ef=Video-AG',
-                idmgroup::IDM_GROUP_TYPE['team'],
-                $schoolid
-        );
-        $idmgroup2->store();
-        $this->assertEquals('AG - Video-AG (1234)', utils::get_coursegroupname_for_idmgroup($idmgroup2));
+        $records = utils::get_mapping_records_for_course($course->id);
 
-        $idmgroup3 = idmgroup::create_from_groupinfo(
-                '36855b1b-52bc-4767-8d70-a9d9275948ef=5ab_K1',
-                idmgroup::IDM_GROUP_TYPE['classunit'],
-                $schoolid
-        );
-        $idmgroup3->store();
-        $this->assertEquals('U - 5ab_K1 (1234)', utils::get_coursegroupname_for_idmgroup($idmgroup3));
+        $this->assertEmpty($records);
+    }
+
+    /**
+     * Tests {@see utils::get_mapping_records_for_course} returns correct records for a course with mappings.
+     *
+     * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
+     */
+    public function test_get_mapping_records_for_course_with_mappings(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group A']);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group B']);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group C']);
+
+        $clock = \core\di::get(\core\clock::class);
+        $now = $clock->time();
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupa->id,
+            'targetgroupid' => $groupc->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupb->id,
+            'targetgroupid' => $groupc->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+
+        $records = utils::get_mapping_records_for_course($course->id);
+
+        $this->assertCount(2, $records);
+        $sourcegroupids = array_column($records, 'sourcegroupid');
+        $targetgroupids = array_unique(array_column($records, 'targetgroupid'));
+        $this->assertContains((string) $groupa->id, $sourcegroupids);
+        $this->assertContains((string) $groupb->id, $sourcegroupids);
+        $this->assertCount(1, $targetgroupids);
+        $this->assertEquals((string) $groupc->id, reset($targetgroupids));
+    }
+
+    /**
+     * Tests {@see utils::get_mapping_records_for_course} only returns records belonging to the requested course.
+     *
+     * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
+     */
+    public function test_get_mapping_records_for_course_isolates_courses(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $group1a = $this->getDataGenerator()->create_group(['courseid' => $course1->id]);
+        $group1b = $this->getDataGenerator()->create_group(['courseid' => $course1->id]);
+        $group2a = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
+        $group2b = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
+
+        $clock = \core\di::get(\core\clock::class);
+        $now = $clock->time();
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $group1a->id,
+            'targetgroupid' => $group1b->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $group2a->id,
+            'targetgroupid' => $group2b->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+
+        $records1 = utils::get_mapping_records_for_course($course1->id);
+        $records2 = utils::get_mapping_records_for_course($course2->id);
+
+        $this->assertCount(1, $records1);
+        $this->assertCount(1, $records2);
+
+        $record1 = reset($records1);
+        $this->assertEquals($group1a->id, $record1->sourcegroupid);
+        $this->assertEquals($group1b->id, $record1->targetgroupid);
+
+        $record2 = reset($records2);
+        $this->assertEquals($group2a->id, $record2->sourcegroupid);
+        $this->assertEquals($group2b->id, $record2->targetgroupid);
+    }
+
+    /**
+     * Tests {@see utils::get_group_mappings_with_group_name} returns empty array for a course without mappings.
+     *
+     * @covers \local_groupmerge\local\utils::get_group_mappings_with_group_name
+     */
+    public function test_get_group_mappings_with_group_name_empty(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+
+        $result = utils::get_group_mappings_with_group_name($course->id);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Tests {@see utils::get_group_mappings_with_group_name} returns correctly structured and sorted mappings.
+     *
+     * @covers \local_groupmerge\local\utils::get_group_mappings_with_group_name
+     */
+    public function test_get_group_mappings_with_group_name_structure_and_sorting(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        // Create groups with names that test sorting (Z before A alphabetically).
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Alpha']);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Beta']);
+        $groupz = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Zeta']);
+        $groupg = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Gamma']);
+
+        $clock = \core\di::get(\core\clock::class);
+        $now = $clock->time();
+        // Mapping 1: Zeta <- Alpha, Gamma (target Zeta should come after Beta in sorted output).
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupa->id,
+            'targetgroupid' => $groupz->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupg->id,
+            'targetgroupid' => $groupz->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+        // Mapping 2: Beta <- Alpha.
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupa->id,
+            'targetgroupid' => $groupb->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+
+        $result = utils::get_group_mappings_with_group_name($course->id);
+
+        // Expect 2 mappings, sorted by target group name: Beta, then Zeta.
+        $this->assertCount(2, $result);
+
+        // First mapping: target Beta.
+        $this->assertEquals($groupb->id, $result[0]->targetgroup->id);
+        $this->assertEquals('Beta', $result[0]->targetgroup->name);
+        $this->assertCount(1, $result[0]->sourcegroups);
+        $this->assertEquals($groupa->id, $result[0]->sourcegroups[0]->id);
+        $this->assertEquals('Alpha', $result[0]->sourcegroups[0]->name);
+
+        // Second mapping: target Zeta with source groups sorted: Alpha, Gamma.
+        $this->assertEquals($groupz->id, $result[1]->targetgroup->id);
+        $this->assertEquals('Zeta', $result[1]->targetgroup->name);
+        $this->assertCount(2, $result[1]->sourcegroups);
+        $this->assertEquals('Alpha', $result[1]->sourcegroups[0]->name);
+        $this->assertEquals('Gamma', $result[1]->sourcegroups[1]->name);
     }
 }
