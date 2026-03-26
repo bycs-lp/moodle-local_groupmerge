@@ -16,16 +16,7 @@
 
 namespace local_groupmerge\local;
 
-use core\event\course_deleted;
 use core\event\group_deleted;
-use core\event\user_enrolment_created;
-use core\event\user_enrolment_deleted;
-use core\task\manager;
-use local_bycsauth\event\idmgroup_deleted;
-use local_bycsauth\event\idmgroup_updated;
-use local_bycsauth\event\idmuser_membership_updated;
-use local_bycsauth\idmgroup;
-use local_groupmerge\task\mark_courses_for_syncing;
 use stdClass;
 
 /**
@@ -48,13 +39,12 @@ class observers {
         $data = $event->get_data();
         $groupid = $data['objectid'];
         $courseid = $data['courseid'];
-
+        utils::delete_mappings_for_groupid($groupid);
     }
 
     public static function group_member_added(\core\event\group_member_added $event): void {
-        $data = $event->get_data();
-        $groupid = $data['objectid'];
-
+        $groupid = $event->objectid;
+        utils::handle_group_member_added($groupid, $event->relateduserid);
         // TODO Handle this
     }
 

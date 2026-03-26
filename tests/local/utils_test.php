@@ -129,12 +129,14 @@ final class utils_test extends \advanced_testcase {
         $DB->insert_record('local_groupmerge_groupmapping', (object) [
             'sourcegroupid' => $groupa->id,
             'targetgroupid' => $groupc->id,
+            'type' => group_syncer::TYPE_COVER,
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
         $DB->insert_record('local_groupmerge_groupmapping', (object) [
             'sourcegroupid' => $groupb->id,
             'targetgroupid' => $groupc->id,
+            'type' => group_syncer::TYPE_COVER,
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
@@ -171,12 +173,14 @@ final class utils_test extends \advanced_testcase {
         $DB->insert_record('local_groupmerge_groupmapping', (object) [
             'sourcegroupid' => $group1a->id,
             'targetgroupid' => $group1b->id,
+            'type' => group_syncer::TYPE_COVER,
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
         $DB->insert_record('local_groupmerge_groupmapping', (object) [
             'sourcegroupid' => $group2a->id,
             'targetgroupid' => $group2b->id,
+            'type' => group_syncer::TYPE_COVER,
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
@@ -233,12 +237,14 @@ final class utils_test extends \advanced_testcase {
         $DB->insert_record('local_groupmerge_groupmapping', (object) [
             'sourcegroupid' => $groupa->id,
             'targetgroupid' => $groupz->id,
+            'type' => group_syncer::TYPE_COVER,
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
         $DB->insert_record('local_groupmerge_groupmapping', (object) [
             'sourcegroupid' => $groupg->id,
             'targetgroupid' => $groupz->id,
+            'type' => group_syncer::TYPE_COVER,
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
@@ -246,6 +252,7 @@ final class utils_test extends \advanced_testcase {
         $DB->insert_record('local_groupmerge_groupmapping', (object) [
             'sourcegroupid' => $groupa->id,
             'targetgroupid' => $groupb->id,
+            'type' => group_syncer::TYPE_COVER,
             'timecreated' => $now,
             'timemodified' => $now,
         ]);
@@ -268,5 +275,191 @@ final class utils_test extends \advanced_testcase {
         $this->assertCount(2, $result[1]->sourcegroups);
         $this->assertEquals('Alpha', $result[1]->sourcegroups[0]->name);
         $this->assertEquals('Gamma', $result[1]->sourcegroups[1]->name);
+    }
+
+    /**
+     * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns empty array when no mappings exist.
+     *
+     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_no_mappings(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $grouptarget = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Target']);
+
+        $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns users from a single source group.
+     *
+     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_single_source(): void {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $grouptarget = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Target']);
+        $groupsource = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source']);
+
+        $user1 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $user2 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupsource->id, $user1->id);
+        groups_add_member($groupsource->id, $user2->id);
+
+        $clock = \core\di::get(\core\clock::class);
+        $now = $clock->time();
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupsource->id,
+            'targetgroupid' => $grouptarget->id,
+            'type' => group_syncer::TYPE_COVER,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+
+        $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
+
+        $this->assertCount(1, $result);
+        $sourcemembers = reset($result);
+        $this->assertArrayHasKey($user1->id, $sourcemembers);
+        $this->assertArrayHasKey($user2->id, $sourcemembers);
+    }
+
+    /**
+     * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns users from multiple source groups.
+     *
+     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_multiple_sources(): void {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $grouptarget = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Target']);
+        $groupsourcea = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source A']);
+        $groupsourceb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source B']);
+
+        $user1 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $user2 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $user3 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupsourcea->id, $user1->id);
+        groups_add_member($groupsourceb->id, $user2->id);
+        groups_add_member($groupsourceb->id, $user3->id);
+
+        $clock = \core\di::get(\core\clock::class);
+        $now = $clock->time();
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupsourcea->id,
+            'targetgroupid' => $grouptarget->id,
+            'type' => group_syncer::TYPE_COVER,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupsourceb->id,
+            'targetgroupid' => $grouptarget->id,
+            'type' => group_syncer::TYPE_COVER,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+
+        $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
+
+        // The function returns one entry per source group.
+        $this->assertCount(2, $result);
+
+        // Collect all user IDs across all source group results.
+        $alluserids = [];
+        foreach ($result as $members) {
+            $alluserids = array_merge($alluserids, array_keys($members));
+        }
+        $this->assertContains($user1->id, $alluserids);
+        $this->assertContains($user2->id, $alluserids);
+        $this->assertContains($user3->id, $alluserids);
+    }
+
+    /**
+     * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} includes a user present in multiple source groups.
+     *
+     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_user_in_multiple_sources(): void {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $grouptarget = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Target']);
+        $groupsourcea = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source A']);
+        $groupsourceb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source B']);
+
+        // User is member of both source groups.
+        $user1 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        groups_add_member($groupsourcea->id, $user1->id);
+        groups_add_member($groupsourceb->id, $user1->id);
+
+        $clock = \core\di::get(\core\clock::class);
+        $now = $clock->time();
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupsourcea->id,
+            'targetgroupid' => $grouptarget->id,
+            'type' => group_syncer::TYPE_COVER,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupsourceb->id,
+            'targetgroupid' => $grouptarget->id,
+            'type' => group_syncer::TYPE_COVER,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+
+        $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
+
+        $this->assertCount(2, $result);
+        // User appears in both source group results.
+        foreach ($result as $members) {
+            $this->assertArrayHasKey($user1->id, $members);
+        }
+    }
+
+    /**
+     * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} with an empty source group.
+     *
+     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_empty_source_group(): void {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $grouptarget = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Target']);
+        $groupsource = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source']);
+
+        $clock = \core\di::get(\core\clock::class);
+        $now = $clock->time();
+        $DB->insert_record('local_groupmerge_groupmapping', (object) [
+            'sourcegroupid' => $groupsource->id,
+            'targetgroupid' => $grouptarget->id,
+            'type' => group_syncer::TYPE_COVER,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ]);
+
+        $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
+
+        // One entry for the mapping, but no members.
+        $this->assertCount(1, $result);
+        $sourcemembers = reset($result);
+        $this->assertEmpty($sourcemembers);
     }
 }

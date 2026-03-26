@@ -19,6 +19,7 @@ namespace local_groupmerge\form;
 use context;
 use context_course;
 use core_form\dynamic_form;
+use local_groupmerge\local\group_syncer;
 use local_groupmerge\local\utils;
 use moodle_url;
 
@@ -91,6 +92,20 @@ class mapping_form extends dynamic_form {
         );
         $mform->addHelpButton('sourcegroupids', 'sourcegroupids', 'local_groupmerge');
         $mform->addRule('sourcegroupids', get_string('required'), 'required', null, 'client');
+
+        $typeoptions = [
+            group_syncer::TYPE_COVER => get_string('type_cover', 'local_groupmerge'),
+            group_syncer::TYPE_SUBSET => get_string('type_subset', 'local_groupmerge'),
+        ];
+        $mform->addElement(
+            'select',
+            'type',
+            get_string('mappingtype', 'local_groupmerge'),
+            $typeoptions
+        );
+        $mform->addHelpButton('type', 'mappingtype', 'local_groupmerge');
+        $mform->setDefault('type', group_syncer::TYPE_SUBSET);
+        $mform->setType('type', PARAM_INT);
     }
 
     /**
@@ -100,6 +115,9 @@ class mapping_form extends dynamic_form {
      */
     protected function get_context_for_dynamic_submission(): context {
         $courseid = $this->optional_param('courseid', 0, PARAM_INT);
+        if (empty($courseid)) {
+            throw new \coding_exception('Course ID is required');
+        }
         return context_course::instance($courseid);
     }
 
@@ -119,11 +137,18 @@ class mapping_form extends dynamic_form {
         global $DB;
 
         $data = $this->get_data();
+        if (empty($data->courseid)) {
+            throw new \coding_exception('Course ID is required');
+        }
         $clock = \core\di::get(\core\clock::class);
         $currenttime = $clock->time();
         $currenttargetgroupid = (int) $data->currenttargetgroupid;
         $targetgroupid = (int) $data->targetgroupid;
         $sourcegroupids = $data->sourcegroupids;
+        if (!property_exists($data, 'type') || is_null($data->type)) {
+            throw new \coding_exception('Mapping type is required und must not be null');
+        }
+        $type = (int) $data->type;
 
         // If editing an existing mapping, remove old records for the original target group.
         if ($currenttargetgroupid > 0) {
@@ -135,10 +160,15 @@ class mapping_form extends dynamic_form {
             $record = new \stdClass();
             $record->sourcegroupid = (int) $sourcegroupid;
             $record->targetgroupid = $targetgroupid;
+            $record->type = $type;
             $record->timecreated = $currenttime;
             $record->timemodified = $currenttime;
             $DB->insert_record('local_groupmerge_groupmapping', $record);
         }
+
+
+        $groupsyncer = new group_syncer($data->courseid);
+        $groupsyncer->sync_group_members();
 
         return [];
     }
@@ -162,6 +192,11 @@ class mapping_form extends dynamic_form {
             $data['sourcegroupids'] = array_values(
                 array_map(fn($record) => $record->sourcegroupid, $sourcerecords)
             );
+            // All records for the same target group share the same type.
+            $firstrecord = reset($sourcerecords);
+            if ($firstrecord) {
+                $data['type'] = (int) $firstrecord->type;
+            }
         }
 
         $this->set_data($data);

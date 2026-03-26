@@ -32,7 +32,9 @@
                 "sourcegroups": [
                     {"id": 10, "name": "Source Group 1"},
                     {"id": 11, "name": "Source Group 2"}
-                ]
+                ],
+                "typename": "Subset",
+                "typeicon": "fa-right-to-bracket"
             }
         ]
     }
@@ -53,12 +55,23 @@
         {{#pix}} t/add, core {{/pix}} {{#str}} addmapping, local_groupmerge {{/str}}
     </button>
 </div>
-<table class="table table-bordered table-striped">
+<div class="table-responsive">
+<table class="table table-bordered table-striped w-100">
+    <colgroup>
+        <col style="width: 40%">
+        <col style="width: 40%">
+        <col>
+        <col>
+    </colgroup>
     <thead>
         <tr>
             <th scope="col">{{#str}} targetgroup, local_groupmerge {{/str}}</th>
             <th scope="col">{{#str}} sourcegroups, local_groupmerge {{/str}}</th>
-            <th scope="col">{{#str}} actions {{/str}}</th>
+            <th scope="col" class="text-center text-nowrap">
+                {{#str}} mappingtype, local_groupmerge {{/str}}
+                {{#helpicon}}{{> core/help_icon}}{{/helpicon}}
+            </th>
+            <th scope="col" class="text-nowrap">{{#str}} actions {{/str}}</th>
         </tr>
     </thead>
     <tbody>
@@ -72,7 +85,10 @@
                     <div><span data-local_groupmerge-groupid="{{id}}">{{name}}</span></div>
                 {{/sourcegroups}}
             </td>
-            <td>
+            <td class="text-center text-nowrap">
+                <i class="icon fa-solid {{typeicon}} fa-fw" title="{{typename}}" role="img" aria-label="{{typename}}"></i>
+            </td>
+            <td class="text-nowrap">
                 <a href="#" data-action="edit" data-local_groupmerge-targetgroupid="{{targetgroup.id}}"
                    aria-label="{{#str}} edit {{/str}}" title="{{#str}} edit {{/str}}">
                     {{#pix}} t/edit, core, {{#str}} edit {{/str}} {{/pix}}
@@ -86,10 +102,11 @@
         {{/mappings}}
         {{^mappings}}
         <tr>
-            <td colspan="3">{{#str}} nomappings, local_groupmerge {{/str}}</td>
+            <td colspan="4">{{#str}} nomappings, local_groupmerge {{/str}}</td>
         </tr>
         {{/mappings}}
     </tbody>
 </table>
+</div>
 {{/canaddmapping}}
 </div>

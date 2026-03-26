@@ -43,7 +43,7 @@ class utils {
         global $DB;
 
         $sql = "SELECT gm.id AS mappingid, gm.targetgroupid, tg.name AS targetgroupname,
-                       gm.sourcegroupid, sg.name AS sourcegroupname
+                       gm.sourcegroupid, sg.name AS sourcegroupname, gm.type
                   FROM {local_groupmerge_groupmapping} gm
                   JOIN {groups} tg ON tg.id = gm.targetgroupid
                   JOIN {groups} sg ON sg.id = gm.sourcegroupid
@@ -62,6 +62,7 @@ class utils {
                         'id' => $targetid,
                         'name' => $record->targetgroupname,
                     ],
+                    'type' => (int) $record->type,
                     'sourcegroups' => [],
                 ];
             }
@@ -85,7 +86,7 @@ class utils {
     public static function get_mapping_records_for_course(int $courseid): array {
         global $DB;
 
-        $sql = "SELECT gm.id, gm.sourcegroupid, gm.targetgroupid
+        $sql = "SELECT gm.id, gm.sourcegroupid, gm.targetgroupid, gm.type
                   FROM {local_groupmerge_groupmapping} gm
                   JOIN {groups} g ON g.id = gm.targetgroupid
                  WHERE g.courseid = :courseid";
@@ -95,7 +96,7 @@ class utils {
     public static function get_mappings_for_course(int $courseid): array {
         global $DB;
         $sql =
-                "SELECT gm.id, gm.sourcegroupid, gm.targetgroupid FROM {local_groupmerge_groupmapping} gm JOIN {groups} g ON gm.targetgroupid = g.id WHERE g.courseid = :courseid";
+            "SELECT gm.id, gm.sourcegroupid, gm.targetgroupid, gm.type FROM {local_groupmerge_groupmapping} gm JOIN {groups} g ON gm.targetgroupid = g.id WHERE g.courseid = :courseid";
         $params = ['courseid' => $courseid];
         return $DB->get_records_sql($sql, $params);
     }
@@ -123,7 +124,7 @@ class utils {
         $instack = [];
         $hascycle = false;
 
-        $dfs = function(int $node) use (&$dfs, &$graph, &$visited, &$instack, &$hascycle): void {
+        $dfs = function (int $node) use (&$dfs, &$graph, &$visited, &$instack, &$hascycle): void {
             $visited[$node] = true;
             $instack[$node] = true;
             foreach ($graph[$node] ?? [] as $neighbor) {
@@ -149,5 +150,44 @@ class utils {
         }
 
         return $hascycle;
+    }
+
+    public static function handle_group_member_added(int $groupid, int $userid) {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+        $sourcegroupmappingrecords = utils::get_sourcegroup_mappings($groupid);
+        foreach ($sourcegroupmappingrecords as $mappingrecord) {
+            // A source group has a new member, add to target group.
+            groups_add_member(intval($mappingrecord->targetgroupid), $userid);
+        }
+        $sourcegroupusers = utils::get_sourcegroup_userids_for_targetgroup($groupid);
+        $targetgroupmappings = utils::get_targetgroup_mappings($groupid);
+        foreach ($targetgroupmappings as $mappingrecord) {
+
+        }
+    }
+
+    public static function get_mapping_records_for_group(int $groupid): array {
+        global $DB;
+        $select = "targetgroupid = :groupid1 OR sourcegroupid = :groupid2";
+        return $DB->get_records_select('local_groupmerge_groupmapping', $select, ['groupid1' => $groupid, 'groupid2' => $groupid]);
+    }
+
+    public static function get_sourcegroup_mappings(int $groupid): array {
+        global $DB;
+        return $DB->get_records('local_groupmerge_groupmapping', ['sourcegroupid' => $groupid]);
+    }
+
+    public static function get_targetgroup_mappings(int $groupid): array {
+        global $DB;
+        return $DB->get_records('local_groupmerge_groupmapping', ['targetgroupid' => $groupid]);
+    }
+
+    public static function get_sourcegroup_userids_for_targetgroup(int $groupid) {
+        $userids = [];
+        foreach (self::get_targetgroup_mappings($groupid) as $mapping) {
+            $userids = [...$userids, groups_get_members($mapping->sourcegroupid, 'u.id')];
+        }
+        return $userids;
     }
 }

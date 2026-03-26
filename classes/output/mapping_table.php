@@ -16,9 +16,11 @@
 
 namespace local_groupmerge\output;
 
+use core\output\help_icon;
 use core\output\renderable;
 use core\output\renderer_base;
 use core\output\templatable;
+use local_groupmerge\local\group_syncer;
 use local_groupmerge\local\utils;
 use stdClass;
 
@@ -64,18 +66,26 @@ class mapping_table implements renderable, templatable {
             $membercounts[$groupid] = count(groups_get_members($groupid, 'u.id'));
         }
 
-        // Append member counts to group names.
+        // Append member counts to group names and resolve type to localized string.
         foreach ($grouped as $mapping) {
             $mapping->targetgroup->name .= ' (' . $membercounts[$mapping->targetgroup->id] . ')';
             foreach ($mapping->sourcegroups as $sourcegroup) {
                 $sourcegroup->name .= ' (' . $membercounts[$sourcegroup->id] . ')';
             }
+            $mapping->typename = $mapping->type === group_syncer::TYPE_COVER
+                ? get_string('type_cover', 'local_groupmerge')
+                : get_string('type_subset', 'local_groupmerge');
+            $mapping->typeicon = $mapping->type === group_syncer::TYPE_COVER
+                ? 'fa-equals'
+                : 'fa-greater-than-equal';
         }
 
         $data = new stdClass();
         $data->courseid = $this->courseid;
         $data->canaddmapping = count(groups_get_all_groups($this->courseid)) >= 2;
         $data->mappings = $grouped;
+        $mappinghelpicon = new help_icon('mappingtype', 'local_groupmerge');
+        $data->helpicon = $mappinghelpicon->export_for_template($output);
         return $data;
     }
 }
