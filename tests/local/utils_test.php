@@ -293,7 +293,11 @@ final class utils_test extends \advanced_testcase {
         groups_add_member($groupsourceb->id, $user3->id);
 
         utils::create_mapping(
-            $course->id, $grouptarget->id, [$groupsourcea->id, $groupsourceb->id], group_syncer::TYPE_COVER, 'Test mapping'
+            $course->id,
+            $grouptarget->id,
+            [$groupsourcea->id, $groupsourceb->id],
+            group_syncer::TYPE_COVER,
+            'Test mapping'
         );
 
         $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
@@ -332,7 +336,11 @@ final class utils_test extends \advanced_testcase {
         groups_add_member($groupsourceb->id, $user1->id);
 
         utils::create_mapping(
-            $course->id, $grouptarget->id, [$groupsourcea->id, $groupsourceb->id], group_syncer::TYPE_COVER, 'Test mapping'
+            $course->id,
+            $grouptarget->id,
+            [$groupsourcea->id, $groupsourceb->id],
+            group_syncer::TYPE_COVER,
+            'Test mapping'
         );
 
         $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
@@ -574,7 +582,11 @@ final class utils_test extends \advanced_testcase {
         $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
 
         $mappingid = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'My mapping'
+            $course->id,
+            $groupc->id,
+            [$groupa->id, $groupb->id],
+            group_syncer::TYPE_COVER,
+            'My mapping'
         );
 
         // Verify mapping record.
@@ -636,7 +648,11 @@ final class utils_test extends \advanced_testcase {
 
         // Create initial mapping: C <- A, B.
         $mappingid = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_SUBSET, 'Original'
+            $course->id,
+            $groupc->id,
+            [$groupa->id, $groupb->id],
+            group_syncer::TYPE_SUBSET,
+            'Original'
         );
 
         // Update mapping: change type, name, and replace source groups with D only.
@@ -751,7 +767,11 @@ final class utils_test extends \advanced_testcase {
         $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
 
         $mappingid = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test'
+            $course->id,
+            $groupc->id,
+            [$groupa->id, $groupb->id],
+            group_syncer::TYPE_COVER,
+            'Test'
         );
 
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
@@ -778,7 +798,11 @@ final class utils_test extends \advanced_testcase {
         $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
 
         $mappingid = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test'
+            $course->id,
+            $groupc->id,
+            [$groupa->id, $groupb->id],
+            group_syncer::TYPE_COVER,
+            'Test'
         );
 
         utils::update_mappings_on_group_deletion($groupc->id);
@@ -804,7 +828,11 @@ final class utils_test extends \advanced_testcase {
         $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
 
         $mappingid = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test'
+            $course->id,
+            $groupc->id,
+            [$groupa->id, $groupb->id],
+            group_syncer::TYPE_COVER,
+            'Test'
         );
 
         utils::update_mappings_on_group_deletion($groupa->id);
@@ -829,7 +857,11 @@ final class utils_test extends \advanced_testcase {
         $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
 
         $mappingid = utils::create_mapping(
-            $course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER, 'Test'
+            $course->id,
+            $groupb->id,
+            [$groupa->id],
+            group_syncer::TYPE_COVER,
+            'Test'
         );
 
         utils::update_mappings_on_group_deletion($groupa->id);
@@ -896,4 +928,3 @@ final class utils_test extends \advanced_testcase {
         $this->assertEmpty(utils::get_orphaned_mapping_ids());
     }
 }
-

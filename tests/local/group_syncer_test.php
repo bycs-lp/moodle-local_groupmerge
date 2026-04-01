@@ -27,7 +27,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class group_syncer_test extends \advanced_testcase {
-
     /**
      * Data provider for {@see test_sync_group_members}.
      *
@@ -350,7 +349,10 @@ final class group_syncer_test extends \advanced_testcase {
 
         // Step 1: Create mapping with SUBSET mode.
         $mappingid = utils::create_mapping(
-            $course->id, $target1->id, [$group2->id, $group3->id], group_syncer::TYPE_SUBSET
+            $course->id,
+            $target1->id,
+            [$group2->id, $group3->id],
+            group_syncer::TYPE_SUBSET
         );
 
         // Step 2: Sync with SUBSET mode — source members are added to target.
@@ -380,7 +382,10 @@ final class group_syncer_test extends \advanced_testcase {
         $expectedids = [(int) $user1->id, (int) $user2->id, (int) $user3->id];
         sort($expectedids);
 
-        $this->assertEquals($expectedids, $memberids,
-            'Extra user should have been removed after switching from SUBSET to COVER mode.');
+        $this->assertEquals(
+            $expectedids,
+            $memberids,
+            'Extra user should have been removed after switching from SUBSET to COVER mode.'
+        );
     }
 }

@@ -48,7 +48,11 @@ final class observers_test extends \advanced_testcase {
 
         // Create a mapping: C <- A, B.
         $mappingid = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test mapping'
+            $course->id,
+            $groupc->id,
+            [$groupa->id, $groupb->id],
+            group_syncer::TYPE_COVER,
+            'Test mapping'
         );
 
         // Verify mapping and both source group entries exist.
@@ -85,7 +89,11 @@ final class observers_test extends \advanced_testcase {
 
         // Create a mapping: B <- A.
         $mappingid = utils::create_mapping(
-            $course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER, 'Test mapping'
+            $course->id,
+            $groupb->id,
+            [$groupa->id],
+            group_syncer::TYPE_COVER,
+            'Test mapping'
         );
 
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
@@ -120,11 +128,17 @@ final class observers_test extends \advanced_testcase {
 
         // Mapping 1: B <- A (A is the only source).
         $mappingid1 = utils::create_mapping(
-            $course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER
+            $course->id,
+            $groupb->id,
+            [$groupa->id],
+            group_syncer::TYPE_COVER
         );
         // Mapping 2: D <- C.
         $mappingid2 = utils::create_mapping(
-            $course->id, $groupd->id, [$groupc->id], group_syncer::TYPE_COVER
+            $course->id,
+            $groupd->id,
+            [$groupc->id],
+            group_syncer::TYPE_COVER
         );
 
         // Delete source group A — mapping 1 loses its only source and must be fully removed.
@@ -155,7 +169,11 @@ final class observers_test extends \advanced_testcase {
 
         // Create a mapping: C <- A, B.
         $mappingid = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test'
+            $course->id,
+            $groupc->id,
+            [$groupa->id, $groupb->id],
+            group_syncer::TYPE_COVER,
+            'Test'
         );
 
         // Delete source group A — mapping still has source B.
@@ -188,10 +206,18 @@ final class observers_test extends \advanced_testcase {
 
         // Create two mappings in the course.
         $mappingid1 = utils::create_mapping(
-            $course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER, 'Mapping 1'
+            $course->id,
+            $groupb->id,
+            [$groupa->id],
+            group_syncer::TYPE_COVER,
+            'Mapping 1'
         );
         $mappingid2 = utils::create_mapping(
-            $course->id, $groupc->id, [$groupa->id], group_syncer::TYPE_SUBSET, 'Mapping 2'
+            $course->id,
+            $groupc->id,
+            [$groupa->id],
+            group_syncer::TYPE_SUBSET,
+            'Mapping 2'
         );
 
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid1]));
@@ -252,7 +278,11 @@ final class observers_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         utils::create_mapping(
-            $course->id, $targetgroup->id, [$sourcegroup->id], group_syncer::TYPE_COVER, 'Test'
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup->id],
+            group_syncer::TYPE_COVER,
+            'Test'
         );
 
         // User is not yet in the target group.
@@ -281,7 +311,11 @@ final class observers_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         utils::create_mapping(
-            $course->id, $targetgroup->id, [$sourcegroup->id], group_syncer::TYPE_SUBSET, 'Test'
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup->id],
+            group_syncer::TYPE_SUBSET,
+            'Test'
         );
 
         groups_add_member($sourcegroup->id, $user->id);
@@ -327,7 +361,11 @@ final class observers_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         utils::create_mapping(
-            $course->id, $targetgroup->id, [$sourcegroup->id], group_syncer::TYPE_COVER, 'Cover mapping'
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup->id],
+            group_syncer::TYPE_COVER,
+            'Cover mapping'
         );
 
         // Add user to source group — observer propagates to target.
@@ -357,7 +395,11 @@ final class observers_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         utils::create_mapping(
-            $course->id, $targetgroup->id, [$sourcegroup->id], group_syncer::TYPE_SUBSET, 'Subset mapping'
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup->id],
+            group_syncer::TYPE_SUBSET,
+            'Subset mapping'
         );
 
         // Add user to source group — observer propagates to target.
@@ -410,7 +452,11 @@ final class observers_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         utils::create_mapping(
-            $course->id, $targetgroup->id, [$sourcegroup->id], group_syncer::TYPE_COVER, 'Cover mapping'
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup->id],
+            group_syncer::TYPE_COVER,
+            'Cover mapping'
         );
 
         // Add user to source group — observer propagates to target.
@@ -448,7 +494,11 @@ final class observers_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         utils::create_mapping(
-            $course->id, $targetgroup->id, [$sourcegroup->id], group_syncer::TYPE_SUBSET, 'Subset mapping'
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup->id],
+            group_syncer::TYPE_SUBSET,
+            'Subset mapping'
         );
 
         // Add user to source group — observer propagates to target.
@@ -486,7 +536,11 @@ final class observers_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
 
         utils::create_mapping(
-            $course->id, $targetgroup->id, [$sourcegroup->id], group_syncer::TYPE_COVER, 'Cover mapping'
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup->id],
+            group_syncer::TYPE_COVER,
+            'Cover mapping'
         );
 
         // Manually add user directly to the target group (not via source).
