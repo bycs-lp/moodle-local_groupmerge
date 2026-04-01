@@ -25,16 +25,18 @@
         "canaddmapping": true,
         "mappings": [
             {
-                "targetgroup": {
-                    "id": 1,
-                    "name": "Target Group A"
-                },
+                "mappingid": 1,
+                "mappingname": "My Mapping",
                 "sourcegroups": [
                     {"id": 10, "name": "Source Group 1"},
                     {"id": 11, "name": "Source Group 2"}
                 ],
+                "targetgroup": {
+                    "id": 1,
+                    "name": "Target Group A"
+                },
                 "typename": "Subset",
-                "typeicon": "fa-right-to-bracket"
+                "typeicon": "fa-less-than-equal"
             }
         ]
     }
@@ -48,27 +50,31 @@
 </div>
 {{/canaddmapping}}
 {{#canaddmapping}}
+<p class="text-muted mb-3">{{#str}} plugin_desc, local_groupmerge {{/str}}</p>
+<h4>{{#str}} links_title, local_groupmerge {{/str}}</h4>
 <div class="d-flex justify-content-end mb-2">
     <button type="button" class="btn btn-primary" data-action="addmapping"
-            aria-label="{{#str}} addmapping, local_groupmerge {{/str}}"
-            title="{{#str}} addmapping, local_groupmerge {{/str}}">
-        {{#pix}} t/add, core {{/pix}} {{#str}} addmapping, local_groupmerge {{/str}}
+            aria-label="{{#str}} addlink, local_groupmerge {{/str}}"
+            title="{{#str}} addlink, local_groupmerge {{/str}}">
+        {{#pix}} t/add, core {{/pix}} {{#str}} addlink, local_groupmerge {{/str}}
     </button>
 </div>
 <div class="table-responsive">
 <table class="table table-bordered table-striped w-100">
     <colgroup>
-        <col style="width: 40%">
-        <col style="width: 40%">
+        <col class="local_groupmerge-col-name">
+        <col class="local_groupmerge-col-sourcegroups">
+        <col class="local_groupmerge-col-targetgroup">
         <col>
         <col>
     </colgroup>
     <thead>
         <tr>
-            <th scope="col">{{#str}} targetgroup, local_groupmerge {{/str}}</th>
+            <th scope="col">{{#str}} linkname, local_groupmerge {{/str}}</th>
             <th scope="col">{{#str}} sourcegroups, local_groupmerge {{/str}}</th>
+            <th scope="col">{{#str}} targetgroup, local_groupmerge {{/str}}</th>
             <th scope="col" class="text-center text-nowrap">
-                {{#str}} mappingtype, local_groupmerge {{/str}}
+                {{#str}} linktype, local_groupmerge {{/str}}
                 {{#helpicon}}{{> core/help_icon}}{{/helpicon}}
             </th>
             <th scope="col" class="text-nowrap">{{#str}} actions {{/str}}</th>
@@ -77,23 +83,24 @@
     <tbody>
         {{#mappings}}
         <tr>
-            <td>
-                <span data-local_groupmerge-groupid="{{targetgroup.id}}">{{targetgroup.name}}</span>
-            </td>
+            <td>{{mappingname}}</td>
             <td>
                 {{#sourcegroups}}
                     <div><span data-local_groupmerge-groupid="{{id}}">{{name}}</span></div>
                 {{/sourcegroups}}
             </td>
+            <td>
+                <span data-local_groupmerge-groupid="{{targetgroup.id}}">{{targetgroup.name}}</span>
+            </td>
             <td class="text-center text-nowrap">
                 <i class="icon fa-solid {{typeicon}} fa-fw" title="{{typename}}" role="img" aria-label="{{typename}}"></i>
             </td>
             <td class="text-nowrap">
-                <a href="#" data-action="edit" data-local_groupmerge-targetgroupid="{{targetgroup.id}}"
+                <a href="#" data-action="edit" data-local_groupmerge-mappingid="{{mappingid}}"
                    aria-label="{{#str}} edit {{/str}}" title="{{#str}} edit {{/str}}">
                     {{#pix}} t/edit, core, {{#str}} edit {{/str}} {{/pix}}
                 </a>
-                <a href="#" data-action="delete" data-local_groupmerge-targetgroupid="{{targetgroup.id}}"
+                <a href="#" data-action="delete" data-local_groupmerge-mappingid="{{mappingid}}"
                    aria-label="{{#str}} delete {{/str}}" title="{{#str}} delete {{/str}}">
                     {{#pix}} t/delete, core, {{#str}} delete {{/str}} {{/pix}}
                 </a>
@@ -102,11 +109,41 @@
         {{/mappings}}
         {{^mappings}}
         <tr>
-            <td colspan="4">{{#str}} nomappings, local_groupmerge {{/str}}</td>
+            <td colspan="5">{{#str}} nolinks, local_groupmerge {{/str}}</td>
         </tr>
         {{/mappings}}
     </tbody>
 </table>
 </div>
+{{#hasresolvedmappings}}
+<h4 class="mt-4">{{#str}} resolvedmappingstitle, local_groupmerge {{/str}}</h4>
+<p class="text-muted">{{#str}} resolvedmappings_desc, local_groupmerge {{/str}}</p>
+<div class="table-responsive">
+<table class="table table-bordered table-striped w-100">
+    <colgroup>
+        <col class="local_groupmerge-col-resolved">
+        <col class="local_groupmerge-col-resolved">
+    </colgroup>
+    <thead>
+        <tr>
+            <th scope="col">{{#str}} sourcegroups, local_groupmerge {{/str}}</th>
+            <th scope="col">{{#str}} targetgroup, local_groupmerge {{/str}}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#resolvedmappings}}
+        <tr>
+            <td>
+                {{#sourcegroups}}
+                    <div>{{name}}</div>
+                {{/sourcegroups}}
+            </td>
+            <td>{{targetgroup.name}}</td>
+        </tr>
+        {{/resolvedmappings}}
+    </tbody>
+</table>
+</div>
+{{/hasresolvedmappings}}
 {{/canaddmapping}}
 </div>

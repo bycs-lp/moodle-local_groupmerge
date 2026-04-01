@@ -21,9 +21,10 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use local_groupmerge\local\utils;
 
 /**
- * External function to delete all group mappings for a given target group.
+ * External function to delete a group mapping.
  *
  * @package    local_groupmerge
  * @copyright  2026 ISB Bayern
@@ -31,7 +32,6 @@ use core_external\external_value;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class delete_mapping extends external_api {
-
     /**
      * Describes the parameters.
      *
@@ -39,41 +39,40 @@ class delete_mapping extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'targetgroupid' => new external_value(PARAM_INT, 'The target group id whose mappings should be deleted'),
+            'mappingid' => new external_value(PARAM_INT, 'The mapping id to delete'),
         ]);
     }
 
     /**
-     * Delete all mappings for the given target group.
+     * Delete a mapping and all its associated target and source group records.
      *
-     * @param int $targetgroupid The target group id
+     * @param int $mappingid The mapping id
      * @return array Result with success status
      */
-    public static function execute(int $targetgroupid): array {
-        global $CFG, $DB;
-        require_once($CFG->dirroot . '/group/lib.php');
+    public static function execute(int $mappingid): array {
+        global $DB;
 
         [
-            'targetgroupid' => $targetgroupid,
+            'mappingid' => $mappingid,
         ] = self::validate_parameters(
             self::execute_parameters(),
             [
-                'targetgroupid' => $targetgroupid,
+                'mappingid' => $mappingid,
             ]
         );
 
-        // Look up the course from the group.
-        $group = groups_get_group($targetgroupid, 'id, courseid', MUST_EXIST);
+        // Look up the mapping to determine the course.
+        $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
 
         // Context validation.
-        $context = context_course::instance($group->courseid);
+        $context = context_course::instance($mapping->courseid);
         self::validate_context($context);
 
         // Capability check.
         require_capability('local/groupmerge:manage', $context);
 
-        // Delete all mapping records for this target group.
-        $DB->delete_records('local_groupmerge_groupmapping', ['targetgroupid' => $targetgroupid]);
+        // Delete the complete mapping.
+        utils::delete_mapping($mappingid);
 
         return ['success' => true];
     }
@@ -89,7 +88,3 @@ class delete_mapping extends external_api {
         ]);
     }
 }
-
-
-
-

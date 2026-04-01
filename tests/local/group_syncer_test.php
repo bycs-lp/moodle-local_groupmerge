@@ -231,7 +231,7 @@ final class group_syncer_test extends \advanced_testcase {
         array $initialtargetmembers,
         array $expectedtargetmembers
     ): void {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
 
         $this->resetAfterTest();
@@ -287,18 +287,10 @@ final class group_syncer_test extends \advanced_testcase {
             }
         }
 
-        // Create mapping records in the database.
-        $now = time();
+        // Create mapping records using the utils API.
         foreach ($mappings as $targetname => $sourcenames) {
-            foreach ($sourcenames as $sourcename) {
-                $record = new stdClass();
-                $record->sourcegroupid = $groupids[$sourcename];
-                $record->targetgroupid = $groupids[$targetname];
-                $record->type = $type;
-                $record->timecreated = $now;
-                $record->timemodified = $now;
-                $DB->insert_record('local_groupmerge_groupmapping', $record);
-            }
+            $sourcegroupids = array_map(fn($sourcename) => $groupids[$sourcename], $sourcenames);
+            utils::create_mapping($course->id, $groupids[$targetname], $sourcegroupids, $type, 'Mapping for ' . $targetname);
         }
 
         // Execute the sync.
@@ -320,5 +312,75 @@ final class group_syncer_test extends \advanced_testcase {
                 "Target group '{$groupname}' has unexpected members after sync."
             );
         }
+    }
+
+    /**
+     * Tests that changing a mapping from SUBSET to COVER removes extra members from the target group.
+     *
+     * Scenario:
+     * 1. Create mapping target1 <- group2, group3 with SUBSET
+     * 2. Sync (SUBSET keeps extra members)
+     * 3. Manually add an extra user to target1
+     * 4. Change mapping to COVER via update_mapping
+     * 5. Sync again
+     * 6. Extra user should be removed
+     *
+     * @covers \local_groupmerge\local\group_syncer::sync_group_members
+     */
+    public function test_sync_removes_extra_members_after_type_change_to_cover(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $user1 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $user2 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $user3 = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $userextra = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $group2 = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'group2']);
+        $group3 = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'group3']);
+        $target1 = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'target1']);
+
+        groups_add_member($group2->id, $user1->id);
+        groups_add_member($group2->id, $user2->id);
+        groups_add_member($group3->id, $user3->id);
+
+        // Step 1: Create mapping with SUBSET mode.
+        $mappingid = utils::create_mapping(
+            $course->id, $target1->id, [$group2->id, $group3->id], group_syncer::TYPE_SUBSET
+        );
+
+        // Step 2: Sync with SUBSET mode — source members are added to target.
+        $groupsyncer = new group_syncer($course->id);
+        $groupsyncer->sync_group_members();
+
+        // Verify: target1 now has user1, user2, user3.
+        $members = groups_get_members($target1->id, 'u.id');
+        $this->assertCount(3, $members);
+
+        // Step 3: Manually add extra user to target1.
+        groups_add_member($target1->id, $userextra->id);
+        $members = groups_get_members($target1->id, 'u.id');
+        $this->assertCount(4, $members);
+
+        // Step 4: Change mapping to COVER mode.
+        utils::update_mapping($mappingid, [$group2->id, $group3->id], group_syncer::TYPE_COVER);
+
+        // Step 5: Sync again — COVER mode should remove the extra user.
+        $groupsyncer->sync_group_members();
+
+        // Step 6: Assert extra user was removed.
+        $members = groups_get_members($target1->id, 'u.id');
+        $memberids = array_map(fn($m) => (int) $m->id, $members);
+        sort($memberids);
+
+        $expectedids = [(int) $user1->id, (int) $user2->id, (int) $user3->id];
+        sort($expectedids);
+
+        $this->assertEquals($expectedids, $memberids,
+            'Extra user should have been removed after switching from SUBSET to COVER mode.');
     }
 }

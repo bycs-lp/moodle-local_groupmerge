@@ -16,8 +16,6 @@
 
 namespace local_groupmerge\local;
 
-use stdClass;
-
 /**
  * Group syncer class for local_groupmerge.
  *
@@ -27,7 +25,6 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class group_syncer {
-
     /** @var int Mapping type "subset": source group members are added to the target, but extra members are kept. */
     public const TYPE_SUBSET = 1;
 
@@ -40,6 +37,7 @@ class group_syncer {
      * @param int $courseid The course id
      */
     public function __construct(
+        /** @var int The course id of the course to merge groups in. */
         private readonly int $courseid
     ) {
     }
@@ -75,12 +73,6 @@ class group_syncer {
                     'type' => $recordtype,
                     'sourcegroupids' => [],
                 ];
-            } else if ($grouped[$targetgroupid]['type'] !== $recordtype) {
-                throw new \coding_exception(
-                    'Inconsistent mapping types for target group (id: ' . $targetgroupid . '). '
-                    . 'All mapping records for the same target group must share the same type, '
-                    . 'but found types: ' . $grouped[$targetgroupid]['type'] . ' and ' . $recordtype . '.'
-                );
             }
             $grouped[$targetgroupid]['sourcegroupids'][] = (int) $record->sourcegroupid;
         }

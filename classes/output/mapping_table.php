@@ -33,8 +33,11 @@ use stdClass;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mapping_table implements renderable, templatable {
-
+    /**
+     * Create the mapping_table widget object.
+     */
     public function __construct(
+        /** @var int $courseid the id of the course to create the widget for */
         private readonly int $courseid
     ) {
     }
@@ -77,15 +80,23 @@ class mapping_table implements renderable, templatable {
                 : get_string('type_subset', 'local_groupmerge');
             $mapping->typeicon = $mapping->type === group_syncer::TYPE_COVER
                 ? 'fa-equals'
-                : 'fa-greater-than-equal';
+                : 'fa-less-than-equal';
+            // Ensure mappingname is available for template.
+            $mapping->mappingname = $mapping->mappingname ?? '';
         }
 
         $data = new stdClass();
         $data->courseid = $this->courseid;
         $data->canaddmapping = count(groups_get_all_groups($this->courseid)) >= 2;
         $data->mappings = $grouped;
-        $mappinghelpicon = new help_icon('mappingtype', 'local_groupmerge');
+        $mappinghelpicon = new help_icon('linktype', 'local_groupmerge');
         $data->helpicon = $mappinghelpicon->export_for_template($output);
+
+        // Build resolved (transitive) mappings for the second table.
+        $resolved = utils::get_resolved_mappings_for_course($this->courseid);
+        $data->resolvedmappings = $resolved;
+        $data->hasresolvedmappings = !empty($resolved);
+
         return $data;
     }
 }

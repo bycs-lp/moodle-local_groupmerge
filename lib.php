@@ -31,9 +31,9 @@
  * @param context_course $context the course context object
  */
 function local_groupmerge_extend_navigation_course(
-        navigation_node $parentnode,
-        stdClass $course,
-        context_course $context
+    navigation_node $parentnode,
+    stdClass $course,
+    context_course $context
 ) {
     if (!has_capability('local/groupmerge:manage', $context)) {
         return;
@@ -43,12 +43,12 @@ function local_groupmerge_extend_navigation_course(
 
     if ($groupparentnode && $usersnode) {
         $groupnode = navigation_node::create(
-                $groupparentnode->text,
-                $groupparentnode->action,
-                $groupparentnode->type,
-                $groupparentnode->shorttext,
-                $groupparentnode->key,
-                $groupparentnode->icon
+            $groupparentnode->text,
+            $groupparentnode->action,
+            $groupparentnode->type,
+            $groupparentnode->shorttext,
+            $groupparentnode->key,
+            $groupparentnode->icon
         );
 
         $groupparentnode->type = navigation_node::TYPE_UNKNOWN;
@@ -61,8 +61,8 @@ function local_groupmerge_extend_navigation_course(
         $url = new moodle_url('/local/groupmerge/groupmerge_config.php', ['courseid' => $course->id]);
 
         $groupparentnode->add(
-                get_string('plugintitle', 'local_groupmerge'),
-                $url
+            get_string('plugintitle', 'local_groupmerge'),
+            $url
         );
     }
 }

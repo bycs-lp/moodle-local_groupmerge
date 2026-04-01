@@ -116,7 +116,6 @@ final class utils_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
      */
     public function test_get_mapping_records_for_course_with_mappings(): void {
-        global $DB;
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -124,22 +123,7 @@ final class utils_test extends \advanced_testcase {
         $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group B']);
         $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group C']);
 
-        $clock = \core\di::get(\core\clock::class);
-        $now = $clock->time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupa->id,
-            'targetgroupid' => $groupc->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupb->id,
-            'targetgroupid' => $groupc->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping($course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test mapping');
 
         $records = utils::get_mapping_records_for_course($course->id);
 
@@ -158,7 +142,6 @@ final class utils_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
      */
     public function test_get_mapping_records_for_course_isolates_courses(): void {
-        global $DB;
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -168,22 +151,8 @@ final class utils_test extends \advanced_testcase {
         $group2a = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
         $group2b = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
 
-        $clock = \core\di::get(\core\clock::class);
-        $now = $clock->time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $group1a->id,
-            'targetgroupid' => $group1b->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $group2a->id,
-            'targetgroupid' => $group2b->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping($course1->id, $group1b->id, [$group1a->id], group_syncer::TYPE_COVER, 'Course 1 mapping');
+        utils::create_mapping($course2->id, $group2b->id, [$group2a->id], group_syncer::TYPE_COVER, 'Course 2 mapping');
 
         $records1 = utils::get_mapping_records_for_course($course1->id);
         $records2 = utils::get_mapping_records_for_course($course2->id);
@@ -221,7 +190,6 @@ final class utils_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\utils::get_group_mappings_with_group_name
      */
     public function test_get_group_mappings_with_group_name_structure_and_sorting(): void {
-        global $DB;
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -231,31 +199,10 @@ final class utils_test extends \advanced_testcase {
         $groupz = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Zeta']);
         $groupg = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Gamma']);
 
-        $clock = \core\di::get(\core\clock::class);
-        $now = $clock->time();
         // Mapping 1: Zeta <- Alpha, Gamma (target Zeta should come after Beta in sorted output).
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupa->id,
-            'targetgroupid' => $groupz->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupg->id,
-            'targetgroupid' => $groupz->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping($course->id, $groupz->id, [$groupa->id, $groupg->id], group_syncer::TYPE_COVER, 'Zeta mapping');
         // Mapping 2: Beta <- Alpha.
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupa->id,
-            'targetgroupid' => $groupb->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER, 'Beta mapping');
 
         $result = utils::get_group_mappings_with_group_name($course->id);
 
@@ -300,7 +247,7 @@ final class utils_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
      */
     public function test_get_sourcegroup_userids_for_targetgroup_single_source(): void {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
 
@@ -313,15 +260,7 @@ final class utils_test extends \advanced_testcase {
         groups_add_member($groupsource->id, $user1->id);
         groups_add_member($groupsource->id, $user2->id);
 
-        $clock = \core\di::get(\core\clock::class);
-        $now = $clock->time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupsource->id,
-            'targetgroupid' => $grouptarget->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping($course->id, $grouptarget->id, [$groupsource->id], group_syncer::TYPE_COVER, 'Test mapping');
 
         $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
 
@@ -337,7 +276,7 @@ final class utils_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
      */
     public function test_get_sourcegroup_userids_for_targetgroup_multiple_sources(): void {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
 
@@ -353,22 +292,9 @@ final class utils_test extends \advanced_testcase {
         groups_add_member($groupsourceb->id, $user2->id);
         groups_add_member($groupsourceb->id, $user3->id);
 
-        $clock = \core\di::get(\core\clock::class);
-        $now = $clock->time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupsourcea->id,
-            'targetgroupid' => $grouptarget->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupsourceb->id,
-            'targetgroupid' => $grouptarget->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping(
+            $course->id, $grouptarget->id, [$groupsourcea->id, $groupsourceb->id], group_syncer::TYPE_COVER, 'Test mapping'
+        );
 
         $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
 
@@ -380,9 +306,9 @@ final class utils_test extends \advanced_testcase {
         foreach ($result as $members) {
             $alluserids = array_merge($alluserids, array_keys($members));
         }
-        $this->assertContains($user1->id, $alluserids);
-        $this->assertContains($user2->id, $alluserids);
-        $this->assertContains($user3->id, $alluserids);
+        $this->assertContains((int) $user1->id, $alluserids);
+        $this->assertContains((int) $user2->id, $alluserids);
+        $this->assertContains((int) $user3->id, $alluserids);
     }
 
     /**
@@ -391,7 +317,7 @@ final class utils_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
      */
     public function test_get_sourcegroup_userids_for_targetgroup_user_in_multiple_sources(): void {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
 
@@ -405,22 +331,9 @@ final class utils_test extends \advanced_testcase {
         groups_add_member($groupsourcea->id, $user1->id);
         groups_add_member($groupsourceb->id, $user1->id);
 
-        $clock = \core\di::get(\core\clock::class);
-        $now = $clock->time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupsourcea->id,
-            'targetgroupid' => $grouptarget->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupsourceb->id,
-            'targetgroupid' => $grouptarget->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping(
+            $course->id, $grouptarget->id, [$groupsourcea->id, $groupsourceb->id], group_syncer::TYPE_COVER, 'Test mapping'
+        );
 
         $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
 
@@ -437,7 +350,7 @@ final class utils_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
      */
     public function test_get_sourcegroup_userids_for_targetgroup_empty_source_group(): void {
-        global $DB, $CFG;
+        global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
 
@@ -445,15 +358,7 @@ final class utils_test extends \advanced_testcase {
         $grouptarget = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Target']);
         $groupsource = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source']);
 
-        $clock = \core\di::get(\core\clock::class);
-        $now = $clock->time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupsource->id,
-            'targetgroupid' => $grouptarget->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
+        utils::create_mapping($course->id, $grouptarget->id, [$groupsource->id], group_syncer::TYPE_COVER, 'Test mapping');
 
         $result = utils::get_sourcegroup_userids_for_targetgroup($grouptarget->id);
 
@@ -462,4 +367,533 @@ final class utils_test extends \advanced_testcase {
         $sourcemembers = reset($result);
         $this->assertEmpty($sourcemembers);
     }
+
+    /**
+     * Tests {@see utils::get_resolved_mappings_for_course} returns empty array for a course without mappings.
+     *
+     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
+     */
+    public function test_get_resolved_mappings_empty(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+
+        $result = utils::get_resolved_mappings_for_course($course->id);
+
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Tests {@see utils::get_resolved_mappings_for_course} omits purely direct mappings (no transitivity).
+     *
+     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
+     */
+    public function test_get_resolved_mappings_no_transitivity(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Alpha']);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Beta']);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Charlie']);
+
+        // Charlie <- Alpha, Beta (no transitivity — should not appear in resolved table).
+        utils::create_mapping($course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER);
+
+        $result = utils::get_resolved_mappings_for_course($course->id);
+
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Tests {@see utils::get_resolved_mappings_for_course} resolves transitive mappings.
+     *
+     * Setup: C <- A, B (cover) and D <- C (cover).
+     * Expected: Only D appears (transitive). Since C is a cover-mode target, its members are exactly
+     * the union of A and B, so C itself is not shown. D's effective sources are A, B.
+     * C itself is purely direct, so it is not listed either.
+     *
+     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
+     */
+    public function test_get_resolved_mappings_transitive(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Alpha']);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Beta']);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Charlie']);
+        $groupd = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Delta']);
+
+        // C <- A, B.
+        utils::create_mapping($course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER);
+        // D <- C (transitive: D should effectively get A, B — C is hidden because it is cover-mode).
+        // This makes sense, because in cover mode there are no additional participants in the transitive group.
+        utils::create_mapping($course->id, $groupd->id, [$groupc->id], group_syncer::TYPE_COVER);
+
+        $result = utils::get_resolved_mappings_for_course($course->id);
+
+        // Only Delta has transitive sources; Charlie is purely direct.
+        $this->assertCount(1, $result);
+
+        $this->assertEquals('Delta', $result[0]->targetgroup->name);
+        $names = array_column($result[0]->sourcegroups, 'name');
+        $this->assertEquals(['Alpha', 'Beta'], $names);
+    }
+
+    /**
+     * Tests {@see utils::get_resolved_mappings_for_course} resolves a three-level chain with cover mode.
+     *
+     * Setup: B <- A (cover), C <- B (cover), D <- C (cover).
+     * In cover mode, in-between groups are hidden (their members are exactly their sources).
+     * B is purely direct (omitted).
+     * C has direct source B, but B is cover-mode → hidden → C gets [Alpha].
+     * D has direct source C, but C is cover-mode → hidden → D gets [Alpha].
+     *
+     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
+     */
+    public function test_get_resolved_mappings_deep_chain(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Alpha']);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Beta']);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Charlie']);
+        $groupd = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Delta']);
+
+        // B <- A.
+        utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER);
+        // C <- B.
+        utils::create_mapping($course->id, $groupc->id, [$groupb->id], group_syncer::TYPE_COVER);
+        // D <- C.
+        utils::create_mapping($course->id, $groupd->id, [$groupc->id], group_syncer::TYPE_COVER);
+
+        $result = utils::get_resolved_mappings_for_course($course->id);
+
+        // B is purely direct → omitted. C and D have transitive sources.
+        $this->assertCount(2, $result);
+
+        // Charlie: B is cover-mode → hidden → resolved sources: [Alpha].
+        $this->assertEquals('Charlie', $result[0]->targetgroup->name);
+        $names0 = array_column($result[0]->sourcegroups, 'name');
+        $this->assertEquals(['Alpha'], $names0);
+
+        // Delta: C is cover-mode → hidden → resolved sources: [Alpha].
+        $this->assertEquals('Delta', $result[1]->targetgroup->name);
+        $names1 = array_column($result[1]->sourcegroups, 'name');
+        $this->assertEquals(['Alpha'], $names1);
+    }
+
+    /**
+     * Tests {@see utils::get_resolved_mappings_for_course} keeps subset-mode in-between groups visible.
+     *
+     * Setup: C <- A, B (subset) and D <- C (cover).
+     * C is a subset-mode target, so it may have extra members and IS shown.
+     * D's effective sources: A, B, C (C is kept because its mapping type is subset).
+     *
+     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
+     */
+    public function test_get_resolved_mappings_transitive_subset_inbetween_shown(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Alpha']);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Beta']);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Charlie']);
+        $groupd = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Delta']);
+
+        // C <- A, B (subset mode: C may have additional members).
+        utils::create_mapping($course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_SUBSET);
+        // D <- C.
+        utils::create_mapping($course->id, $groupd->id, [$groupc->id], group_syncer::TYPE_COVER);
+
+        $result = utils::get_resolved_mappings_for_course($course->id);
+
+        // Only Delta has transitive sources; Charlie is purely direct.
+        $this->assertCount(1, $result);
+
+        $this->assertEquals('Delta', $result[0]->targetgroup->name);
+        $names = array_column($result[0]->sourcegroups, 'name');
+        // C is subset-mode, so it IS shown alongside its resolved sources.
+        $this->assertEquals(['Alpha', 'Beta', 'Charlie'], $names);
+    }
+
+    /**
+     * Tests {@see utils::get_resolved_mappings_for_course} with mixed cover/subset in-between groups.
+     *
+     * Setup: B <- A (cover), C <- A (subset), D <- B, C (cover).
+     * B is cover-mode → hidden in D's resolved sources.
+     * C is subset-mode → shown in D's resolved sources.
+     * D's effective sources: A (from B, which is hidden), A + C (C is shown, its source A is also resolved).
+     * Deduplicated: [Alpha, Charlie].
+     *
+     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
+     */
+    public function test_get_resolved_mappings_mixed_cover_subset(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Alpha']);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Beta']);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Charlie']);
+        $groupd = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Delta']);
+
+        // B <- A (cover: B's members are exactly A's members).
+        utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER);
+        // C <- A (subset: C may have extra members beyond A).
+        utils::create_mapping($course->id, $groupc->id, [$groupa->id], group_syncer::TYPE_SUBSET);
+        // D <- B, C.
+        utils::create_mapping($course->id, $groupd->id, [$groupb->id, $groupc->id], group_syncer::TYPE_COVER);
+
+        $result = utils::get_resolved_mappings_for_course($course->id);
+
+        // Find Delta in the results.
+        $deltamapping = null;
+        foreach ($result as $mapping) {
+            if ($mapping->targetgroup->name === 'Delta') {
+                $deltamapping = $mapping;
+                break;
+            }
+        }
+        $this->assertNotNull($deltamapping, 'Delta should appear in resolved mappings');
+        $names = array_column($deltamapping->sourcegroups, 'name');
+        // B (cover) is hidden, C (subset) is shown, A is a leaf source from both branches.
+        $this->assertEquals(['Alpha', 'Charlie'], $names);
+    }
+
+    /**
+     * Tests {@see utils::create_mapping} creates all records correctly.
+     *
+     * @covers \local_groupmerge\local\utils::create_mapping
+     */
+    public function test_create_mapping(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $mappingid = utils::create_mapping(
+            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'My mapping'
+        );
+
+        // Verify mapping record.
+        $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
+        $this->assertEquals($course->id, $mapping->courseid);
+        $this->assertEquals('My mapping', $mapping->name);
+        $this->assertEquals(group_syncer::TYPE_COVER, (int) $mapping->type);
+        $this->assertGreaterThan(0, (int) $mapping->timecreated);
+        $this->assertGreaterThan(0, (int) $mapping->timemodified);
+
+        // Verify target group record.
+        $targetrecords = $DB->get_records('local_groupmerge_targetgroup', ['mappingid' => $mappingid]);
+        $this->assertCount(1, $targetrecords);
+        $targetrecord = reset($targetrecords);
+        $this->assertEquals($groupc->id, $targetrecord->targetgroupid);
+
+        // Verify source group records.
+        $sourcerecords = $DB->get_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]);
+        $this->assertCount(2, $sourcerecords);
+        $sourcegroupids = array_column($sourcerecords, 'sourcegroupid');
+        $this->assertContains((string) $groupa->id, $sourcegroupids);
+        $this->assertContains((string) $groupb->id, $sourcegroupids);
+    }
+
+    /**
+     * Tests {@see utils::create_mapping} uses default type when not specified.
+     *
+     * @covers \local_groupmerge\local\utils::create_mapping
+     */
+    public function test_create_mapping_default_type(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $mappingid = utils::create_mapping($course->id, $groupb->id, [$groupa->id]);
+
+        $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
+        $this->assertEquals(group_syncer::TYPE_SUBSET, (int) $mapping->type);
+        $this->assertNull($mapping->name);
+    }
+
+    /**
+     * Tests {@see utils::update_mapping} updates metadata and replaces source groups.
+     *
+     * @covers \local_groupmerge\local\utils::update_mapping
+     */
+    public function test_update_mapping(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupd = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        // Create initial mapping: C <- A, B.
+        $mappingid = utils::create_mapping(
+            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_SUBSET, 'Original'
+        );
+
+        // Update mapping: change type, name, and replace source groups with D only.
+        utils::update_mapping($mappingid, [$groupd->id], group_syncer::TYPE_COVER, 'Updated');
+
+        // Verify mapping record was updated.
+        $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
+        $this->assertEquals('Updated', $mapping->name);
+        $this->assertEquals(group_syncer::TYPE_COVER, (int) $mapping->type);
+
+        // Verify target group is unchanged.
+        $targetrecords = $DB->get_records('local_groupmerge_targetgroup', ['mappingid' => $mappingid]);
+        $this->assertCount(1, $targetrecords);
+        $targetrecord = reset($targetrecords);
+        $this->assertEquals($groupc->id, $targetrecord->targetgroupid);
+
+        // Verify source groups were replaced.
+        $sourcerecords = $DB->get_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]);
+        $this->assertCount(1, $sourcerecords);
+        $sourcerecord = reset($sourcerecords);
+        $this->assertEquals($groupd->id, $sourcerecord->sourcegroupid);
+    }
+
+    /**
+     * Tests {@see utils::update_mapping} can set name to null.
+     *
+     * @covers \local_groupmerge\local\utils::update_mapping
+     */
+    public function test_update_mapping_null_name(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $mappingid = utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER, 'Named');
+
+        utils::update_mapping($mappingid, [$groupa->id], group_syncer::TYPE_COVER);
+
+        $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
+        $this->assertNull($mapping->name);
+    }
+
+    /**
+     * Tests {@see utils::create_mapping} throws exception when target group belongs to a different course.
+     *
+     * @covers \local_groupmerge\local\utils::create_mapping
+     */
+    public function test_create_mapping_target_wrong_course(): void {
+        $this->resetAfterTest();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $source = $this->getDataGenerator()->create_group(['courseid' => $course1->id]);
+        $target = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
+
+        $this->expectException(\coding_exception::class);
+        utils::create_mapping($course1->id, $target->id, [$source->id]);
+    }
+
+    /**
+     * Tests {@see utils::create_mapping} throws exception when a source group belongs to a different course.
+     *
+     * @covers \local_groupmerge\local\utils::create_mapping
+     */
+    public function test_create_mapping_source_wrong_course(): void {
+        $this->resetAfterTest();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $target = $this->getDataGenerator()->create_group(['courseid' => $course1->id]);
+        $goodsource = $this->getDataGenerator()->create_group(['courseid' => $course1->id]);
+        $badsource = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
+
+        $this->expectException(\coding_exception::class);
+        utils::create_mapping($course1->id, $target->id, [$goodsource->id, $badsource->id]);
+    }
+
+    /**
+     * Tests {@see utils::update_mapping} throws exception when a source group belongs to a different course.
+     *
+     * @covers \local_groupmerge\local\utils::update_mapping
+     */
+    public function test_update_mapping_source_wrong_course(): void {
+        $this->resetAfterTest();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course1->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course1->id]);
+        $foreigngroup = $this->getDataGenerator()->create_group(['courseid' => $course2->id]);
+
+        $mappingid = utils::create_mapping($course1->id, $groupb->id, [$groupa->id]);
+
+        $this->expectException(\coding_exception::class);
+        utils::update_mapping($mappingid, [$foreigngroup->id], group_syncer::TYPE_COVER);
+    }
+
+    /**
+     * Tests {@see utils::delete_mapping} removes all related records.
+     *
+     * @covers \local_groupmerge\local\utils::delete_mapping
+     */
+    public function test_delete_mapping(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $mappingid = utils::create_mapping(
+            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test'
+        );
+
+        $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
+
+        utils::delete_mapping($mappingid);
+
+        $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
+        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
+        $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
+    }
+
+    /**
+     * Tests {@see utils::update_mappings_on_group_deletion} removes the complete mapping when the target group is deleted.
+     *
+     * @covers \local_groupmerge\local\utils::update_mappings_on_group_deletion
+     */
+    public function test_update_mappings_on_group_deletion_target(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $mappingid = utils::create_mapping(
+            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test'
+        );
+
+        utils::update_mappings_on_group_deletion($groupc->id);
+
+        $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
+        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
+        $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
+    }
+
+    /**
+     * Tests {@see utils::update_mappings_on_group_deletion} only removes the sourcegroup entry
+     * when one of multiple source groups is deleted. The mapping and remaining sources are preserved.
+     *
+     * @covers \local_groupmerge\local\utils::update_mappings_on_group_deletion
+     */
+    public function test_update_mappings_on_group_deletion_one_of_two_sources(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $mappingid = utils::create_mapping(
+            $course->id, $groupc->id, [$groupa->id, $groupb->id], group_syncer::TYPE_COVER, 'Test'
+        );
+
+        utils::update_mappings_on_group_deletion($groupa->id);
+
+        $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
+        $this->assertTrue($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
+        $this->assertEquals(1, $DB->count_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
+    }
+
+    /**
+     * Tests {@see utils::update_mappings_on_group_deletion} deletes the entire mapping when
+     * the last remaining source group is deleted.
+     *
+     * @covers \local_groupmerge\local\utils::update_mappings_on_group_deletion
+     */
+    public function test_update_mappings_on_group_deletion_last_source(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $mappingid = utils::create_mapping(
+            $course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER, 'Test'
+        );
+
+        utils::update_mappings_on_group_deletion($groupa->id);
+
+        $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
+        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
+        $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
+    }
+
+    /**
+     * Tests {@see utils::get_orphaned_mapping_ids} returns empty array when all mappings have source groups.
+     *
+     * @covers \local_groupmerge\local\utils::get_orphaned_mapping_ids
+     */
+    public function test_get_orphaned_mapping_ids_none(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER);
+
+        $this->assertEmpty(utils::get_orphaned_mapping_ids());
+    }
+
+    /**
+     * Tests {@see utils::get_orphaned_mapping_ids} detects a mapping whose source groups have been removed.
+     *
+     * @covers \local_groupmerge\local\utils::get_orphaned_mapping_ids
+     */
+    public function test_get_orphaned_mapping_ids_with_orphan(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupd = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        // Mapping 1: B <- A (will become orphaned).
+        $mappingid1 = utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER);
+        // Mapping 2: D <- C (stays intact).
+        $mappingid2 = utils::create_mapping($course->id, $groupd->id, [$groupc->id], group_syncer::TYPE_COVER);
+
+        // Manually remove all source groups of mapping 1 to simulate an orphan.
+        $DB->delete_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid1]);
+
+        $orphanedids = utils::get_orphaned_mapping_ids();
+
+        $this->assertCount(1, $orphanedids);
+        $this->assertEquals($mappingid1, $orphanedids[0]);
+    }
+
+    /**
+     * Tests {@see utils::get_orphaned_mapping_ids} returns empty array when no mappings exist at all.
+     *
+     * @covers \local_groupmerge\local\utils::get_orphaned_mapping_ids
+     */
+    public function test_get_orphaned_mapping_ids_no_mappings(): void {
+        $this->resetAfterTest();
+
+        $this->assertEmpty(utils::get_orphaned_mapping_ids());
+    }
 }
+

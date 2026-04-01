@@ -28,11 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 $functions = [
     'local_groupmerge_delete_mapping' => [
         'classname' => 'local_groupmerge\external\delete_mapping',
-        'description' => 'Delete all group mappings for a given target group in a course.',
+        'description' => 'Delete a group mapping by its mapping id.',
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'local/groupmerge:manage',
     ],
 ];
-
-

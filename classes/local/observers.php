@@ -17,7 +17,7 @@
 namespace local_groupmerge\local;
 
 use core\event\group_deleted;
-use stdClass;
+use core\event\course_deleted;
 
 /**
  * Observer functions for local_groupmerge.
@@ -31,27 +31,51 @@ class observers {
     /**
      * Handles the event that a course group has been deleted.
      *
-     * This removes the course group from our managed groups.
+     * This removes all mappings referencing the deleted group.
      *
      * @param group_deleted $event the group_deleted event
      */
     public static function group_deleted(group_deleted $event): void {
         $data = $event->get_data();
         $groupid = $data['objectid'];
-        $courseid = $data['courseid'];
-        utils::delete_mappings_for_groupid($groupid);
+        utils::update_mappings_on_group_deletion($groupid);
     }
 
+    /**
+     * Handles the event that a course has been deleted.
+     *
+     * This removes all mappings for the deleted course.
+     *
+     * @param course_deleted $event the course_deleted event
+     */
+    public static function course_deleted(course_deleted $event): void {
+        global $DB;
+        $data = $event->get_data();
+        $courseid = $data['objectid'];
+        // Get all mappings for this course and delete them.
+        $mappings = $DB->get_records('local_groupmerge_mapping', ['courseid' => $courseid]);
+        foreach ($mappings as $mapping) {
+            utils::delete_mapping((int) $mapping->id);
+        }
+    }
+
+    /**
+     * Handles the event that a member has been added to a group.
+     *
+     * @param \core\event\group_member_added $event the group_member_added event
+     */
     public static function group_member_added(\core\event\group_member_added $event): void {
         $groupid = $event->objectid;
         utils::handle_group_member_added($groupid, $event->relateduserid);
-        // TODO Handle this
     }
 
+    /**
+     * Handles the event that a member has been removed from a group.
+     *
+     * @param \core\event\group_member_removed $event the group_member_removed event
+     */
     public static function group_member_removed(\core\event\group_member_removed $event): void {
-        $data = $event->get_data();
-        $groupid = $data['objectid'];
-
-        // TODO Handle this
+        $groupid = $event->objectid;
+        utils::handle_group_member_removed($groupid, $event->relateduserid);
     }
 }
