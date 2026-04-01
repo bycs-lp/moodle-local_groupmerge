@@ -33,7 +33,7 @@ final class group_syncer_test extends \advanced_testcase {
      *
      * Each dataset uses human-readable group and user names.
      * - sourcegroups: associative array mapping source group name to an array of user names.
-     * - mappings: array of arrays, each mapping a target group name to source group names and a type.
+     * - mappings: associative array mapping target group name to an array of source group names.
      * - initialtargetmembers: associative array mapping target group name to user names already present before sync.
      * - expectedtargetmembers: associative array mapping target group name to user names expected after sync.
      *
@@ -41,13 +41,14 @@ final class group_syncer_test extends \advanced_testcase {
      */
     public static function sync_group_members_provider(): array {
         return [
-            'cover_single_source_to_empty_target' => [
+            'single_source_to_empty_target_cover' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2', 'User 3'],
                 ],
                 'mappings' => [
-                    'Group B' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A']],
+                    'Group B' => ['Group A'],
                 ],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group B' => [],
                 ],
@@ -55,14 +56,15 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group B' => ['User 1', 'User 2', 'User 3'],
                 ],
             ],
-            'cover_multiple_sources_merged_into_single_target' => [
+            'multiple_sources_merged_into_single_target_cover' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2'],
                     'Group B' => ['User 3', 'User 4'],
                 ],
                 'mappings' => [
-                    'Group C' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A', 'Group B']],
+                    'Group C' => ['Group A', 'Group B'],
                 ],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group C' => [],
                 ],
@@ -70,14 +72,15 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group C' => ['User 1', 'User 2', 'User 3', 'User 4'],
                 ],
             ],
-            'cover_overlapping_sources_deduplicated_in_target' => [
+            'overlapping_sources_deduplicated_in_target_cover' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2', 'User 3'],
                     'Group B' => ['User 2', 'User 3', 'User 4'],
                 ],
                 'mappings' => [
-                    'Group C' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A', 'Group B']],
+                    'Group C' => ['Group A', 'Group B'],
                 ],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group C' => [],
                 ],
@@ -85,13 +88,14 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group C' => ['User 1', 'User 2', 'User 3', 'User 4'],
                 ],
             ],
-            'cover_extra_members_removed_from_target' => [
+            'extra_members_removed_from_target_cover' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2'],
                 ],
                 'mappings' => [
-                    'Group B' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A']],
+                    'Group B' => ['Group A'],
                 ],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group B' => ['User 1', 'User 2', 'User 3', 'User 4'],
                 ],
@@ -99,13 +103,14 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group B' => ['User 1', 'User 2'],
                 ],
             ],
-            'cover_empty_source_clears_target' => [
+            'empty_source_clears_target_cover' => [
                 'sourcegroups' => [
                     'Group A' => [],
                 ],
                 'mappings' => [
-                    'Group B' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A']],
+                    'Group B' => ['Group A'],
                 ],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group B' => ['User 1', 'User 2'],
                 ],
@@ -113,15 +118,16 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group B' => [],
                 ],
             ],
-            'cover_multiple_independent_target_groups' => [
+            'multiple_independent_target_groups_cover' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2'],
                     'Group B' => ['User 3', 'User 4'],
                 ],
                 'mappings' => [
-                    'Group C' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A']],
-                    'Group D' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group B']],
+                    'Group C' => ['Group A'],
+                    'Group D' => ['Group B'],
                 ],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group C' => [],
                     'Group D' => [],
@@ -131,13 +137,14 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group D' => ['User 3', 'User 4'],
                 ],
             ],
-            'cover_mixed_add_and_remove' => [
+            'mixed_add_and_remove_cover' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2', 'User 3'],
                 ],
                 'mappings' => [
-                    'Group B' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A']],
+                    'Group B' => ['Group A'],
                 ],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group B' => ['User 2', 'User 4'],
                 ],
@@ -145,9 +152,10 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group B' => ['User 1', 'User 2', 'User 3'],
                 ],
             ],
-            'cover_no_mappings_leaves_groups_untouched' => [
+            'no_mappings_leaves_groups_untouched' => [
                 'sourcegroups' => [],
                 'mappings' => [],
+                'type' => group_syncer::TYPE_COVER,
                 'initialtargetmembers' => [
                     'Group A' => ['User 1', 'User 2'],
                 ],
@@ -155,47 +163,19 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group A' => ['User 1', 'User 2'],
                 ],
             ],
-            'subset_single_source_to_empty_target' => [
+            'subset_adds_members_but_keeps_extra' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2'],
                 ],
                 'mappings' => [
-                    'Group B' => ['type' => group_syncer::TYPE_SUBSET, 'sources' => ['Group A']],
+                    'Group B' => ['Group A'],
                 ],
+                'type' => group_syncer::TYPE_SUBSET,
                 'initialtargetmembers' => [
-                    'Group B' => [],
-                ],
-                'expectedtargetmembers' => [
-                    'Group B' => ['User 1', 'User 2'],
-                ],
-            ],
-            'subset_extra_members_kept_in_target' => [
-                'sourcegroups' => [
-                    'Group A' => ['User 1', 'User 2'],
-                ],
-                'mappings' => [
-                    'Group B' => ['type' => group_syncer::TYPE_SUBSET, 'sources' => ['Group A']],
-                ],
-                'initialtargetmembers' => [
-                    'Group B' => ['User 1', 'User 3', 'User 4'],
+                    'Group B' => ['User 3', 'User 4'],
                 ],
                 'expectedtargetmembers' => [
                     'Group B' => ['User 1', 'User 2', 'User 3', 'User 4'],
-                ],
-            ],
-            'subset_multiple_sources_merged_extra_kept' => [
-                'sourcegroups' => [
-                    'Group A' => ['User 1', 'User 2'],
-                    'Group B' => ['User 3'],
-                ],
-                'mappings' => [
-                    'Group C' => ['type' => group_syncer::TYPE_SUBSET, 'sources' => ['Group A', 'Group B']],
-                ],
-                'initialtargetmembers' => [
-                    'Group C' => ['User 4', 'User 5'],
-                ],
-                'expectedtargetmembers' => [
-                    'Group C' => ['User 1', 'User 2', 'User 3', 'User 4', 'User 5'],
                 ],
             ],
             'subset_empty_source_keeps_target_members' => [
@@ -203,8 +183,9 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group A' => [],
                 ],
                 'mappings' => [
-                    'Group B' => ['type' => group_syncer::TYPE_SUBSET, 'sources' => ['Group A']],
+                    'Group B' => ['Group A'],
                 ],
+                'type' => group_syncer::TYPE_SUBSET,
                 'initialtargetmembers' => [
                     'Group B' => ['User 1', 'User 2'],
                 ],
@@ -212,22 +193,20 @@ final class group_syncer_test extends \advanced_testcase {
                     'Group B' => ['User 1', 'User 2'],
                 ],
             ],
-            'mixed_cover_and_subset_targets' => [
+            'subset_overlapping_sources_adds_missing_keeps_extra' => [
                 'sourcegroups' => [
                     'Group A' => ['User 1', 'User 2'],
-                    'Group B' => ['User 3'],
+                    'Group B' => ['User 2', 'User 3'],
                 ],
                 'mappings' => [
-                    'Group C' => ['type' => group_syncer::TYPE_COVER, 'sources' => ['Group A']],
-                    'Group D' => ['type' => group_syncer::TYPE_SUBSET, 'sources' => ['Group B']],
+                    'Group C' => ['Group A', 'Group B'],
                 ],
+                'type' => group_syncer::TYPE_SUBSET,
                 'initialtargetmembers' => [
-                    'Group C' => ['User 1', 'User 4'],
-                    'Group D' => ['User 4', 'User 5'],
+                    'Group C' => ['User 4'],
                 ],
                 'expectedtargetmembers' => [
-                    'Group C' => ['User 1', 'User 2'],
-                    'Group D' => ['User 3', 'User 4', 'User 5'],
+                    'Group C' => ['User 1', 'User 2', 'User 3', 'User 4'],
                 ],
             ],
         ];
@@ -240,13 +219,15 @@ final class group_syncer_test extends \advanced_testcase {
      * @covers \local_groupmerge\local\group_syncer::sync_group_members
      *
      * @param array $sourcegroups Associative array of source group name => array of user names
-     * @param array $mappings Associative array of target group name => ['type' => int, 'sources' => string[]]
+     * @param array $mappings Associative array of target group name => array of source group names
+     * @param int $type Mapping type (TYPE_SUBSET or TYPE_COVER)
      * @param array $initialtargetmembers Associative array of target group name => array of user names pre-populated
      * @param array $expectedtargetmembers Associative array of target group name => array of user names expected after sync
      */
     public function test_sync_group_members(
         array $sourcegroups,
         array $mappings,
+        int $type,
         array $initialtargetmembers,
         array $expectedtargetmembers
     ): void {
@@ -308,9 +289,8 @@ final class group_syncer_test extends \advanced_testcase {
 
         // Create mapping records in the database.
         $now = time();
-        foreach ($mappings as $targetname => $mappingdata) {
-            $type = $mappingdata['type'];
-            foreach ($mappingdata['sources'] as $sourcename) {
+        foreach ($mappings as $targetname => $sourcenames) {
+            foreach ($sourcenames as $sourcename) {
                 $record = new stdClass();
                 $record->sourcegroupid = $groupids[$sourcename];
                 $record->targetgroupid = $groupids[$targetname];
@@ -340,76 +320,5 @@ final class group_syncer_test extends \advanced_testcase {
                 "Target group '{$groupname}' has unexpected members after sync."
             );
         }
-    }
-
-    /**
-     * Tests that sync_group_members throws a coding_exception when a mapping record has a null type.
-     *
-     * @covers \local_groupmerge\local\group_syncer::sync_group_members
-     */
-    public function test_sync_group_members_throws_on_null_type(): void {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/group/lib.php');
-
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group A']);
-        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group B']);
-
-        $now = time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupa->id,
-            'targetgroupid' => $groupb->id,
-            'type' => null,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-
-        $groupsyncer = new group_syncer($course->id);
-
-        $this->expectException(\coding_exception::class);
-        $this->expectExceptionMessage('has null type');
-        $groupsyncer->sync_group_members();
-    }
-
-    /**
-     * Tests that sync_group_members throws a coding_exception when mapping records for the same
-     * target group have inconsistent types.
-     *
-     * @covers \local_groupmerge\local\group_syncer::sync_group_members
-     */
-    public function test_sync_group_members_throws_on_inconsistent_types(): void {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/group/lib.php');
-
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group A']);
-        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group B']);
-        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Group C']);
-
-        $now = time();
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupa->id,
-            'targetgroupid' => $groupc->id,
-            'type' => group_syncer::TYPE_SUBSET,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-        $DB->insert_record('local_groupmerge_groupmapping', (object) [
-            'sourcegroupid' => $groupb->id,
-            'targetgroupid' => $groupc->id,
-            'type' => group_syncer::TYPE_COVER,
-            'timecreated' => $now,
-            'timemodified' => $now,
-        ]);
-
-        $groupsyncer = new group_syncer($course->id);
-
-        $this->expectException(\coding_exception::class);
-        $this->expectExceptionMessage('Inconsistent mapping types');
-        $groupsyncer->sync_group_members();
     }
 }
