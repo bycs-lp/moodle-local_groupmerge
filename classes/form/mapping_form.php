@@ -19,8 +19,10 @@ namespace local_groupmerge\form;
 use context;
 use context_course;
 use core_form\dynamic_form;
+use local_groupmerge\hook\restrict_target_groups;
 use local_groupmerge\local\group_syncer;
 use local_groupmerge\local\utils;
+use local_groupmerge\output\unallowed_targetgroups_info;
 use moodle_url;
 
 /**
@@ -36,7 +38,7 @@ class mapping_form extends dynamic_form {
      * Form definition.
      */
     protected function definition() {
-        global $CFG;
+        global $CFG, $OUTPUT;
         require_once($CFG->dirroot . '/group/lib.php');
 
         $mform = $this->_form;
@@ -80,15 +82,32 @@ class mapping_form extends dynamic_form {
             );
         } else {
             // Add mode: user selects the target group.
+            // Dispatch hook to allow other plugins to restrict available target groups.
+            $hook = new restrict_target_groups($courseid);
+            \core\di::get(\core\hook\manager::class)->dispatch($hook);
+            $unallowedtargetgroupids = $hook->get_unallowed_targetgroupids();
+            $targetgroupoptions = array_diff_key($groupoptions, $unallowedtargetgroupids);
+
             $mform->addElement(
                 'select',
                 'targetgroupid',
                 get_string('targetgroupid', 'local_groupmerge'),
-                $groupoptions
+                $targetgroupoptions
             );
             $mform->addHelpButton('targetgroupid', 'targetgroupid', 'local_groupmerge');
             $mform->addRule('targetgroupid', get_string('required'), 'required', null, 'client');
             $mform->setType('targetgroupid', PARAM_INT);
+
+            // Show info about disallowed target groups grouped by reason.
+            if (!empty($unallowedtargetgroupids)) {
+                $unallowedtargetgroupsinfo = new unallowed_targetgroups_info($unallowedtargetgroupids, $groupoptions);
+                $mform->addElement(
+                    'static',
+                    'unallowed_targetgroups_info',
+                    get_string('unallowed_targetgroups', 'local_groupmerge'),
+                    $OUTPUT->render($unallowedtargetgroupsinfo)
+                );
+            }
         }
 
         $mform->addElement(
@@ -241,6 +260,14 @@ class mapping_form extends dynamic_form {
             $existingtarget = $DB->record_exists('local_groupmerge_targetgroup', ['targetgroupid' => $targetgroupid]);
             if ($existingtarget) {
                 $errors['targetgroupid'] = get_string('error_targetalreadylinked', 'local_groupmerge');
+            }
+
+            // Validate that the target group is not disallowed by a hook subscriber.
+            $hook = new restrict_target_groups($courseid);
+            \core\di::get(\core\hook\manager::class)->dispatch($hook);
+            $unallowed = $hook->get_unallowed_targetgroupids();
+            if (isset($unallowed[$targetgroupid])) {
+                $errors['targetgroupid'] = get_string('error_target_unallowed', 'local_groupmerge', $unallowed[$targetgroupid]);
             }
         }
 
