@@ -31,6 +31,10 @@ require_course_login($courseid);
 
 $context = context_course::instance($courseid);
 require_capability('local/groupmerge:manage', $context);
+
+// Remove any existing mappings whose target group has been restricted by other plugins.
+\local_groupmerge\local\utils::remove_mappings_with_restricted_target_groups($courseid);
+
 $url = new moodle_url('/local/groupmerge/groupmerge_config.php', ['courseid' => $courseid]);
 $PAGE->set_url($url);
 $PAGE->set_context($context);

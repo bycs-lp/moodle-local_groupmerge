@@ -16,6 +16,7 @@
 
 namespace local_groupmerge\local;
 
+use local_groupmerge\hook\restrict_target_groups;
 use stdClass;
 
 /**
@@ -620,6 +621,43 @@ class utils {
         $records = $DB->get_records_sql($sql);
 
         return array_values(array_map(fn($record) => (int) $record->id, $records));
+    }
+
+    /**
+     * Remove all mappings for a course whose target group is restricted by hook subscribers.
+     *
+     * Dispatches the {@see restrict_target_groups} hook to determine which groups are
+     * currently disallowed as targets. Any existing mapping that uses one of these groups
+     * as its target will be deleted.
+     *
+     * @param int $courseid The course id
+     * @return int[] Array of mapping ids that were removed.
+     */
+    public static function remove_mappings_with_restricted_target_groups(int $courseid): array {
+        $hook = new restrict_target_groups($courseid);
+        \core\di::get(\core\hook\manager::class)->dispatch($hook);
+        $unallowedgroupids = $hook->get_unallowed_targetgroupids();
+
+        if (empty($unallowedgroupids)) {
+            return [];
+        }
+
+        $records = self::get_mapping_records_for_course($courseid);
+
+        // Collect unique mapping ids whose target group is restricted.
+        $mappingidstoremove = [];
+        foreach ($records as $record) {
+            $targetgroupid = (int) $record->targetgroupid;
+            if (array_key_exists($targetgroupid, $unallowedgroupids)) {
+                $mappingidstoremove[(int) $record->mappingid] = true;
+            }
+        }
+
+        foreach (array_keys($mappingidstoremove) as $mappingid) {
+            self::delete_mapping($mappingid);
+        }
+
+        return array_keys($mappingidstoremove);
     }
 
     /**

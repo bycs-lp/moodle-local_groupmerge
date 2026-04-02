@@ -54,6 +54,9 @@ class group_syncer {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
 
+        // Remove any existing mappings whose target group has been restricted by other plugins.
+        utils::remove_mappings_with_restricted_target_groups($this->courseid);
+
         $records = utils::get_mapping_records_for_course($this->courseid);
 
         // Build structured mapping data grouped by target group id and validate types.

@@ -15,7 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace local_groupmerge\hook;
-
 /**
  * Unit tests for the restrict_target_groups hook class.
  *
