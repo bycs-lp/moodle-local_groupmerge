@@ -163,7 +163,7 @@ class mapping_form extends dynamic_form {
      *
      * @return array
      */
-    public function process_dynamic_submission() {
+    public function process_dynamic_submission(): array {
         $data = $this->get_data();
         if (empty($data->courseid)) {
             throw new \coding_exception('Course ID is required');
