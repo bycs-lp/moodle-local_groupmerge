@@ -62,6 +62,16 @@ class observers {
     /**
      * Handles the event that a member has been added to a group.
      *
+     * If the group is a source group of a mapping, the user is propagated to the target group(s).
+     *
+     * Note on cascading: Adding a user to the target group via {@see groups_add_member()} fires another
+     * group_member_added event. If that target group is itself a source group of another mapping, this
+     * observer will fire again, creating a transitive cascade (e.g. A->B->C). This is intentional and safe
+     * because:
+     * - Circular mappings are prevented at creation time by {@see utils::has_circular_mapping()}.
+     * - {@see groups_add_member()} does not fire an event if the user is already a member of the group,
+     *   which guarantees natural termination of the cascade.
+     *
      * @param \core\event\group_member_added $event the group_member_added event
      */
     public static function group_member_added(\core\event\group_member_added $event): void {
@@ -71,6 +81,16 @@ class observers {
 
     /**
      * Handles the event that a member has been removed from a group.
+     *
+     * Two cases are handled (see {@see utils::handle_group_member_removed()} for details):
+     * 1. User removed from a source group -> removal may be propagated to the target group (cover mode).
+     * 2. User removed from a target group -> user may be re-added if still in a source group.
+     *
+     * Note on cascading: Similar to {@see group_member_added()}, removing a user from a target group
+     * may trigger further events. This is intentional and safe because:
+     * - Circular mappings are prevented at creation time by {@see utils::has_circular_mapping()}.
+     * - {@see groups_remove_member()} does not fire an event if the user is not a member of the group,
+     *   which guarantees natural termination of the cascade.
      *
      * @param \core\event\group_member_removed $event the group_member_removed event
      */
