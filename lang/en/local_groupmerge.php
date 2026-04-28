@@ -36,6 +36,7 @@ $string['links_title'] = 'Group links';
 $string['linktype'] = 'Type';
 $string['linktype_help'] = 'Choose the link type. "Cover" means the target group will contain exactly the members of all source groups (extra members will be removed). "Subset" means source group members will be added to the target group, but existing extra members will be kept.';
 $string['managegroups'] = 'Manage groups';
+$string['mappings_removed_by_restriction'] = 'The following group links have been automatically removed because their target group is no longer available: {$a}';
 $string['member_readded'] = 'The member was automatically re-added to the group "{$a->groupname}" because a group link requires it. If you do not want this, please <a href="{$a->configurl}">remove the corresponding group link</a>.';
 $string['nolinks'] = 'No group links defined yet.';
 $string['notenoughgroups'] = '"Merge Groups" requires at least 2 groups in this course. Please create more groups first.';

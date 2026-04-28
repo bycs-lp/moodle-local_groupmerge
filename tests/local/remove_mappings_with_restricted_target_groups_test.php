@@ -19,13 +19,13 @@ namespace local_groupmerge\local;
 use local_groupmerge\hook\restrict_target_groups;
 
 /**
- * Unit tests for utils::remove_mappings_with_restricted_target_groups.
+ * Unit tests for utils::get_mapping_ids_with_restricted_target_groups.
  *
  * @package    local_groupmerge
  * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_groupmerge\local\utils::remove_mappings_with_restricted_target_groups
+ * @covers     \local_groupmerge\local\utils::get_mapping_ids_with_restricted_target_groups
  */
 final class remove_mappings_with_restricted_target_groups_test extends \advanced_testcase {
 
@@ -51,7 +51,7 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
             // No groups restricted.
         });
 
-        $removed = utils::remove_mappings_with_restricted_target_groups($course->id);
+        $removed = utils::get_mapping_ids_with_restricted_target_groups($course->id);
 
         $this->assertEmpty($removed);
         // Mapping should still exist.
@@ -83,10 +83,15 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
             $hook->add_unallowed_groupid($restrictedgroupid, 'blocked by test');
         });
 
-        $removed = utils::remove_mappings_with_restricted_target_groups($course->id);
+        $removed = utils::get_mapping_ids_with_restricted_target_groups($course->id);
 
         $this->assertCount(1, $removed);
         $this->assertContains($mappingid, $removed);
+
+        // Now delete the restricted mappings.
+        foreach ($removed as $mid) {
+            utils::delete_mapping($mid);
+        }
 
         // Mapping and all associated records should be gone.
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
@@ -125,10 +130,15 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
             $hook->add_unallowed_groupid($restrictedgroupid, 'blocked');
         });
 
-        $removed = utils::remove_mappings_with_restricted_target_groups($course->id);
+        $removed = utils::get_mapping_ids_with_restricted_target_groups($course->id);
 
         $this->assertCount(1, $removed);
         $this->assertContains($mappingid1, $removed);
+
+        // Now delete the restricted mappings.
+        foreach ($removed as $mid) {
+            utils::delete_mapping($mid);
+        }
 
         // Mapping 1 should be gone.
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid1]));
@@ -182,11 +192,16 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
             }
         );
 
-        $removed = utils::remove_mappings_with_restricted_target_groups($course->id);
+        $removed = utils::get_mapping_ids_with_restricted_target_groups($course->id);
 
         $this->assertCount(2, $removed);
         $this->assertContains($mappingid1, $removed);
         $this->assertContains($mappingid2, $removed);
+
+        // Now delete the restricted mappings.
+        foreach ($removed as $mid) {
+            utils::delete_mapping($mid);
+        }
 
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid1]));
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid2]));
@@ -208,7 +223,7 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
             $hook->add_unallowed_groupid(999, 'does not matter');
         });
 
-        $removed = utils::remove_mappings_with_restricted_target_groups($course->id);
+        $removed = utils::get_mapping_ids_with_restricted_target_groups($course->id);
 
         $this->assertEmpty($removed);
     }
@@ -237,7 +252,7 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
             $hook->add_unallowed_groupid($sourcegroupid, 'restricted source');
         });
 
-        $removed = utils::remove_mappings_with_restricted_target_groups($course->id);
+        $removed = utils::get_mapping_ids_with_restricted_target_groups($course->id);
 
         $this->assertEmpty($removed);
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));

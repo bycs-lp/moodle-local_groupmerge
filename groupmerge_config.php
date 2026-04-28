@@ -32,8 +32,28 @@ require_course_login($courseid);
 $context = context_course::instance($courseid);
 require_capability('local/groupmerge:manage', $context);
 
-// Remove any existing mappings whose target group has been restricted by other plugins.
-\local_groupmerge\local\utils::remove_mappings_with_restricted_target_groups($courseid);
+// Find mappings whose target group has been restricted by other plugins.
+$restrictedmappingids = \local_groupmerge\local\utils::get_mapping_ids_with_restricted_target_groups($courseid);
+if (!empty($restrictedmappingids)) {
+    // Resolve target group names before deleting.
+    $mappings = \local_groupmerge\local\utils::get_group_mappings_with_group_name($courseid);
+    $removednames = [];
+    foreach ($mappings as $m) {
+        if (in_array($m->mappingid, $restrictedmappingids)) {
+            $removednames[] = $m->targetgroup->name;
+        }
+    }
+
+    // Now delete.
+    foreach ($restrictedmappingids as $mappingid) {
+        \local_groupmerge\local\utils::delete_mapping($mappingid);
+    }
+
+    \core\notification::add(
+        get_string('mappings_removed_by_restriction', 'local_groupmerge', implode(', ', $removednames)),
+        \core\notification::WARNING
+    );
+}
 
 $url = new moodle_url('/local/groupmerge/groupmerge_config.php', ['courseid' => $courseid]);
 $PAGE->set_url($url);

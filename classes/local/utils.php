@@ -656,16 +656,16 @@ class utils {
     }
 
     /**
-     * Remove all mappings for a course whose target group is restricted by hook subscribers.
+     * Find all mapping ids for a course whose target group is restricted by hook subscribers.
      *
      * Dispatches the {@see restrict_target_groups} hook to determine which groups are
-     * currently disallowed as targets. Any existing mapping that uses one of these groups
-     * as its target will be deleted.
+     * currently disallowed as targets. Returns the mapping ids that use one of these groups
+     * as their target. The caller is responsible for deleting them.
      *
      * @param int $courseid The course id
-     * @return int[] Array of mapping ids that were removed.
+     * @return int[] Array of mapping ids whose target group is restricted.
      */
-    public static function remove_mappings_with_restricted_target_groups(int $courseid): array {
+    public static function get_mapping_ids_with_restricted_target_groups(int $courseid): array {
         $hook = new restrict_target_groups($courseid);
         \core\di::get(\core\hook\manager::class)->dispatch($hook);
         $unallowedgroupids = $hook->get_unallowed_targetgroupids();
@@ -685,9 +685,6 @@ class utils {
             }
         }
 
-        foreach (array_keys($mappingidstoremove) as $mappingid) {
-            self::delete_mapping($mappingid);
-        }
 
         return array_keys($mappingidstoremove);
     }

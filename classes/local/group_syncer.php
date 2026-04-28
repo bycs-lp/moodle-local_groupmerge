@@ -55,7 +55,10 @@ class group_syncer {
         require_once($CFG->dirroot . '/group/lib.php');
 
         // Remove any existing mappings whose target group has been restricted by other plugins.
-        utils::remove_mappings_with_restricted_target_groups($this->courseid);
+        $restrictedids = utils::get_mapping_ids_with_restricted_target_groups($this->courseid);
+        foreach ($restrictedids as $mappingid) {
+            utils::delete_mapping($mappingid);
+        }
 
         $records = utils::get_mapping_records_for_course($this->courseid);
 
