@@ -250,6 +250,11 @@ class mapping_form extends dynamic_form {
         $mappingid = (int) ($data['mappingid'] ?? 0);
         $courseid = (int) $data['courseid'];
 
+        // At least one source group must be selected.
+        if (empty($sourcegroupids)) {
+            $errors['sourcegroupids'] = get_string('required');
+        }
+
         // Target group must not be in source groups (direct self-loop).
         if (in_array($targetgroupid, $sourcegroupids)) {
             $errors['sourcegroupids'] = get_string('error_targetinsource', 'local_groupmerge');
