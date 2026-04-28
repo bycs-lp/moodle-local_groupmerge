@@ -153,18 +153,6 @@ class utils {
     }
 
     /**
-     * Get all mappings for a course.
-     *
-     * Returns records with mappingid, sourcegroupid, targetgroupid and type.
-     *
-     * @param int $courseid The course id
-     * @return array Array of records
-     */
-    public static function get_mappings_for_course(int $courseid): array {
-        return self::get_mapping_records_for_course($courseid);
-    }
-
-    /**
      * Checks whether the given set of mappings contains a circular dependency.
      *
      * Each mapping is an associative array with integer keys 'sourcegroupid' and 'targetgroupid'.
