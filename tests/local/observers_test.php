@@ -551,4 +551,52 @@ final class observers_test extends \advanced_testcase {
         groups_remove_member($targetgroup->id, $user->id);
         $this->assertFalse(groups_is_member($targetgroup->id, $user->id));
     }
+
+    /**
+     * Tests that removing a user from one source group does NOT remove the user from the target group
+     * when the user is still a member of another source group of the same cover-mode mapping.
+     *
+     * Regression test for Bug 1.1: Cover-mode removal was too aggressive — it did not check
+     * whether the user was still in another source group of the same mapping.
+     *
+     * @covers \local_groupmerge\local\observers::group_member_removed
+     */
+    public function test_group_member_removed_cover_still_in_other_source(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $sourcegroup1 = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source 1']);
+        $sourcegroup2 = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Source 2']);
+        $targetgroup = $this->getDataGenerator()->create_group(['courseid' => $course->id, 'name' => 'Target']);
+        $user = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        utils::create_mapping(
+            $course->id,
+            $targetgroup->id,
+            [$sourcegroup1->id, $sourcegroup2->id],
+            group_syncer::TYPE_COVER,
+            'Cover mapping with two sources'
+        );
+
+        // Add user to both source groups — observer propagates to target.
+        groups_add_member($sourcegroup1->id, $user->id);
+        groups_add_member($sourcegroup2->id, $user->id);
+        $this->assertTrue(groups_is_member($targetgroup->id, $user->id));
+
+        // Remove user from source group 1 — user is still in source group 2, so must STAY in target.
+        groups_remove_member($sourcegroup1->id, $user->id);
+        $this->assertTrue(
+            groups_is_member($targetgroup->id, $user->id),
+            'User should remain in target group because they are still in another source group of the same mapping.'
+        );
+
+        // Now remove user from source group 2 as well — user is in no source group, so must be removed from target.
+        groups_remove_member($sourcegroup2->id, $user->id);
+        $this->assertFalse(
+            groups_is_member($targetgroup->id, $user->id),
+            'User should be removed from target group after being removed from all source groups.'
+        );
+    }
 }

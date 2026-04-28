@@ -250,6 +250,19 @@ class utils {
                 continue;
             }
 
+            // Check if user is still in another source group of the same mapping.
+            $sourcegroups = self::get_sourcegroups_for_mapping($mappingid);
+            $stillinothersource = false;
+            foreach ($sourcegroups as $sg) {
+                if ((int) $sg->sourcegroupid !== $groupid && groups_is_member((int) $sg->sourcegroupid, $userid)) {
+                    $stillinothersource = true;
+                    break;
+                }
+            }
+            if ($stillinothersource) {
+                continue;
+            }
+
             $targetgroups = self::get_targetgroups_for_mapping($mappingid);
             foreach ($targetgroups as $targetgroup) {
                 groups_remove_member((int) $targetgroup->targetgroupid, $userid);
