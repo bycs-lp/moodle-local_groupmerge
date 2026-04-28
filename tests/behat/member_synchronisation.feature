@@ -1,4 +1,4 @@
-@local_groupmerge
+@local @local_groupmerge
 Feature: Group merge member synchronisation
   As an editing teacher, when I configure group links,
   members of source groups are automatically added to the target group.

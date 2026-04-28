@@ -1,4 +1,4 @@
-@local_groupmerge
+@local @local_groupmerge
 Feature: Group merge mapping management
   As an editing teacher I can create, edit and delete group merge mappings
   so that group memberships are synchronised automatically.
