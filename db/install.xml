@@ -48,6 +48,9 @@
         <KEY NAME="mappingid" TYPE="foreign" FIELDS="mappingid" REFTABLE="local_groupmerge_mapping" REFFIELDS="id"/>
         <KEY NAME="sourcegroupid" TYPE="foreign" FIELDS="sourcegroupid" REFTABLE="groups" REFFIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="mappingid_sourcegroupid" UNIQUE="true" FIELDS="mappingid, sourcegroupid"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>
