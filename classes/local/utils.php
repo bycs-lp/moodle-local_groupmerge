@@ -162,7 +162,7 @@ class utils {
      * @return bool true if a circular dependency exists, false otherwise
      */
     public static function has_circular_mapping(array $mappings): bool {
-        // Build directed graph: source → [targets].
+        // Build directed graph: source -> [targets].
         $graph = [];
         foreach ($mappings as $mapping) {
             $src = (int) $mapping['sourcegroupid'];

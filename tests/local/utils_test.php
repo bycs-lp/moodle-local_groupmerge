@@ -453,8 +453,8 @@ final class utils_test extends \advanced_testcase {
      * Setup: B <- A (cover), C <- B (cover), D <- C (cover).
      * In cover mode, in-between groups are hidden (their members are exactly their sources).
      * B is purely direct (omitted).
-     * C has direct source B, but B is cover-mode → hidden → C gets [Alpha].
-     * D has direct source C, but C is cover-mode → hidden → D gets [Alpha].
+     * C has direct source B, but B is cover-mode -> hidden -> C gets [Alpha].
+     * D has direct source C, but C is cover-mode -> hidden -> D gets [Alpha].
      *
      * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
      */
@@ -476,15 +476,15 @@ final class utils_test extends \advanced_testcase {
 
         $result = utils::get_resolved_mappings_for_course($course->id);
 
-        // B is purely direct → omitted. C and D have transitive sources.
+        // B is purely direct -> omitted. C and D have transitive sources.
         $this->assertCount(2, $result);
 
-        // Charlie: B is cover-mode → hidden → resolved sources: [Alpha].
+        // Charlie: B is cover-mode -> hidden -> resolved sources: [Alpha].
         $this->assertEquals('Charlie', $result[0]->targetgroup->name);
         $names0 = array_column($result[0]->sourcegroups, 'name');
         $this->assertEquals(['Alpha'], $names0);
 
-        // Delta: C is cover-mode → hidden → resolved sources: [Alpha].
+        // Delta: C is cover-mode -> hidden -> resolved sources: [Alpha].
         $this->assertEquals('Delta', $result[1]->targetgroup->name);
         $names1 = array_column($result[1]->sourcegroups, 'name');
         $this->assertEquals(['Alpha'], $names1);
@@ -528,8 +528,8 @@ final class utils_test extends \advanced_testcase {
      * Tests {@see utils::get_resolved_mappings_for_course} with mixed cover/subset in-between groups.
      *
      * Setup: B <- A (cover), C <- A (subset), D <- B, C (cover).
-     * B is cover-mode → hidden in D's resolved sources.
-     * C is subset-mode → shown in D's resolved sources.
+     * B is cover-mode -> hidden in D's resolved sources.
+     * C is subset-mode -> shown in D's resolved sources.
      * D's effective sources: A (from B, which is hidden), A + C (C is shown, its source A is also resolved).
      * Deduplicated: [Alpha, Charlie].
      *

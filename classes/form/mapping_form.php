@@ -276,7 +276,7 @@ class mapping_form extends dynamic_form {
             }
         }
 
-        // Check for transitive circular mappings (e.g. A→B, B→C, C→A).
+        // Check for transitive circular mappings (e.g. A->B, B->C, C->A).
         if (empty($errors['sourcegroupids'])) {
             $existingrecords = utils::get_mapping_records_for_course($courseid);
 

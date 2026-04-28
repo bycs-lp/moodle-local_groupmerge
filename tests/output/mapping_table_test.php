@@ -148,7 +148,7 @@ final class mapping_table_test extends \advanced_testcase {
         $course = $data['course'];
         $groups = $data['groups'];
 
-        // Chain: Group 1 → Group 2, Group 2 → Group 3.
+        // Chain: Group 1 -> Group 2, Group 2 -> Group 3.
         utils::create_mapping(
             $course->id,
             $groups['Group 2']->id,

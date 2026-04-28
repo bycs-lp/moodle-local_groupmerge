@@ -238,7 +238,7 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
         $course = $data['course'];
         $groups = $data['groups'];
 
-        // Mapping: Group 1 → Group 3 (Group 1 is source, Group 3 is target).
+        // Mapping: Group 1 -> Group 3 (Group 1 is source, Group 3 is target).
         $mappingid = utils::create_mapping(
             $course->id,
             $groups['Group 3']->id,

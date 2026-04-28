@@ -103,7 +103,7 @@ final class mapping_form_test extends \advanced_testcase {
         $course = $data['course'];
         $groups = $data['groups'];
 
-        // Create an existing mapping: Group 1 → Group 3.
+        // Create an existing mapping: Group 1 -> Group 3.
         utils::create_mapping(
             $course->id,
             $groups['Group 3']->id,
@@ -138,7 +138,7 @@ final class mapping_form_test extends \advanced_testcase {
         $course = $data['course'];
         $groups = $data['groups'];
 
-        // Create mapping: Group 1 → Group 2.
+        // Create mapping: Group 1 -> Group 2.
         utils::create_mapping(
             $course->id,
             $groups['Group 2']->id,
@@ -148,7 +148,7 @@ final class mapping_form_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
         $this->setUser($user);
 
-        // Try to create mapping: Group 2 → Group 1 (would create a cycle: 1→2→1).
+        // Try to create mapping: Group 2 -> Group 1 (would create a cycle: 1->2->1).
         $errors = $this->run_validation([
             'courseid' => $course->id,
             'mappingid' => 0,
@@ -226,7 +226,7 @@ final class mapping_form_test extends \advanced_testcase {
         $course = $data['course'];
         $groups = $data['groups'];
 
-        // Create mapping: Group 1 → Group 3.
+        // Create mapping: Group 1 -> Group 3.
         $mappingid = utils::create_mapping(
             $course->id,
             $groups['Group 3']->id,
