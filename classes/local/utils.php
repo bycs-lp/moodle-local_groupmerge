@@ -58,6 +58,19 @@ class utils {
     }
 
     /**
+     * Validate that the given mapping type is a known type constant.
+     *
+     * @param int $type The mapping type to validate
+     * @throws \coding_exception If the type is not one of the allowed values
+     */
+    public static function validate_type(int $type): void {
+        $allowedtypes = [group_syncer::TYPE_SUBSET, group_syncer::TYPE_COVER];
+        if (!in_array($type, $allowedtypes, true)) {
+            throw new \coding_exception('Invalid mapping type: ' . $type);
+        }
+    }
+
+    /**
      * Get all group mappings for a course, grouped by mapping, with resolved group names.
      *
      * Returns an array of mapping objects, each containing a 'targetgroup' object (with id and name),
@@ -392,6 +405,9 @@ class utils {
         // Validate that target group and all source groups belong to the given course.
         self::require_groups_belong_to_course($courseid, array_merge([$targetgroupid], $sourcegroupids));
 
+        // Validate the mapping type.
+        self::validate_type($type);
+
         $clock = \core\di::get(\core\clock::class);
         $now = $clock->time();
 
@@ -448,6 +464,9 @@ class utils {
 
         // Validate that all source groups belong to the mapping's course.
         self::require_groups_belong_to_course($courseid, $sourcegroupids);
+
+        // Validate the mapping type.
+        self::validate_type($type);
 
         $clock = \core\di::get(\core\clock::class);
         $now = $clock->time();
