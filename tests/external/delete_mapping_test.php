@@ -29,7 +29,6 @@ use local_groupmerge\local\utils;
  * @covers     \local_groupmerge\external\delete_mapping
  */
 final class delete_mapping_test extends \advanced_testcase {
-
     /**
      * Tests that a valid mapping is successfully deleted via the external API.
      *
@@ -141,4 +140,3 @@ final class delete_mapping_test extends \advanced_testcase {
         delete_mapping::execute($mappingid);
     }
 }
-

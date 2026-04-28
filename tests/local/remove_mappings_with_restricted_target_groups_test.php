@@ -28,7 +28,6 @@ use local_groupmerge\hook\restrict_target_groups;
  * @covers     \local_groupmerge\local\utils::get_mapping_ids_with_restricted_target_groups
  */
 final class remove_mappings_with_restricted_target_groups_test extends \advanced_testcase {
-
     /**
      * Test that no mappings are removed when the hook returns no restricted groups.
      */

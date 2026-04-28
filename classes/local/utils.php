@@ -673,7 +673,6 @@ class utils {
             }
         }
 
-
         return array_keys($mappingidstoremove);
     }
 

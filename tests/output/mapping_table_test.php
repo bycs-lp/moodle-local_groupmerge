@@ -29,7 +29,6 @@ use local_groupmerge\local\utils;
  * @covers     \local_groupmerge\output\mapping_table
  */
 final class mapping_table_test extends \advanced_testcase {
-
     /**
      * Test that export_for_template returns correct data for a course without any mappings.
      */
@@ -215,4 +214,3 @@ final class mapping_table_test extends \advanced_testcase {
         $this->assertNotEmpty($result->helpicon);
     }
 }
-

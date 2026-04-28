@@ -29,7 +29,6 @@ use local_groupmerge\local\utils;
  * @covers     \local_groupmerge\form\mapping_form::validation
  */
 final class mapping_form_test extends \advanced_testcase {
-
     /**
      * Helper: create a mapping_form instance for the given course and call validation().
      *
@@ -248,5 +247,3 @@ final class mapping_form_test extends \advanced_testcase {
         $this->assertEmpty($errors);
     }
 }
-
-
