@@ -65,9 +65,9 @@ final class mapping_table_test extends \advanced_testcase {
     }
 
     /**
-     * Test that export_for_template includes mappings with member counts appended to group names.
+     * Test that export_for_template includes mappings with member counts and group URLs.
      */
-    public function test_export_for_template_with_mappings_includes_member_counts(): void {
+    public function test_export_for_template_with_mappings_includes_member_counts_and_urls(): void {
         global $CFG, $PAGE;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -101,14 +101,35 @@ final class mapping_table_test extends \advanced_testcase {
         $this->assertEquals(get_string('type_cover', 'local_groupmerge'), $mapping->typename);
         $this->assertEquals('type_cover', $mapping->typeicon);
 
-        // Target group name should include member count.
-        $this->assertStringContainsString('Group 3', $mapping->targetgroup->name);
-        $this->assertMatchesRegularExpression('/\(\d+\)$/', $mapping->targetgroup->name);
+        // Target group: name, member count and URLs.
+        $this->assertEquals('Group 3', $mapping->targetgroup->name);
+        $this->assertIsInt($mapping->targetgroup->membercount);
+        $expectedtargetediturl = (new \moodle_url(
+            '/group/group.php',
+            ['id' => $groups['Group 3']->id, 'courseid' => $course->id]
+        ))->out(false);
+        $this->assertEquals($expectedtargetediturl, $mapping->targetgroup->editurl);
+        $expectedtargetmembersurl = (new \moodle_url(
+            '/group/members.php',
+            ['group' => $groups['Group 3']->id]
+        ))->out(false);
+        $this->assertEquals($expectedtargetmembersurl, $mapping->targetgroup->membersurl);
 
-        // Source group name should include member count "(2)".
+        // Source group: name, member count "(2)" and URLs.
         $this->assertCount(1, $mapping->sourcegroups);
-        $this->assertStringContainsString('Group 1', $mapping->sourcegroups[0]->name);
-        $this->assertStringContainsString('(2)', $mapping->sourcegroups[0]->name);
+        $source = $mapping->sourcegroups[0];
+        $this->assertEquals('Group 1', $source->name);
+        $this->assertEquals(2, $source->membercount);
+        $expectedsourceediturl = (new \moodle_url(
+            '/group/group.php',
+            ['id' => $groups['Group 1']->id, 'courseid' => $course->id]
+        ))->out(false);
+        $this->assertEquals($expectedsourceediturl, $source->editurl);
+        $expectedsourcemembersurl = (new \moodle_url(
+            '/group/members.php',
+            ['group' => $groups['Group 1']->id]
+        ))->out(false);
+        $this->assertEquals($expectedsourcemembersurl, $source->membersurl);
     }
 
     /**

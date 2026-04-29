@@ -69,11 +69,28 @@ class mapping_table implements renderable, templatable {
             $membercounts[$groupid] = count(groups_get_members($groupid, 'u.id'));
         }
 
-        // Append member counts to group names and resolve type to localized string.
+        // Add member counts and group management URLs to each group.
         foreach ($grouped as $mapping) {
-            $mapping->targetgroup->name .= ' (' . $membercounts[$mapping->targetgroup->id] . ')';
+            $targetid = $mapping->targetgroup->id;
+            $mapping->targetgroup->membercount = $membercounts[$targetid];
+            $mapping->targetgroup->editurl = (new \moodle_url(
+                '/group/group.php',
+                ['id' => $targetid, 'courseid' => $this->courseid]
+            ))->out(false);
+            $mapping->targetgroup->membersurl = (new \moodle_url(
+                '/group/members.php',
+                ['group' => $targetid]
+            ))->out(false);
             foreach ($mapping->sourcegroups as $sourcegroup) {
-                $sourcegroup->name .= ' (' . $membercounts[$sourcegroup->id] . ')';
+                $sourcegroup->membercount = $membercounts[$sourcegroup->id];
+                $sourcegroup->editurl = (new \moodle_url(
+                    '/group/group.php',
+                    ['id' => $sourcegroup->id, 'courseid' => $this->courseid]
+                ))->out(false);
+                $sourcegroup->membersurl = (new \moodle_url(
+                    '/group/members.php',
+                    ['group' => $sourcegroup->id]
+                ))->out(false);
             }
             $mapping->typename = $mapping->type === group_syncer::TYPE_COVER
                 ? get_string('type_cover', 'local_groupmerge')

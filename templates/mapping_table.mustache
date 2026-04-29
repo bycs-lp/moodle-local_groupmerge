@@ -86,11 +86,19 @@
             <td>{{mappingname}}</td>
             <td>
                 {{#sourcegroups}}
-                    <div><span data-local_groupmerge-groupid="{{id}}">{{name}}</span></div>
+                    <div>
+                        <span data-local_groupmerge-groupid="{{id}}">
+                            <a href="{{editurl}}">{{name}}</a>
+                            (<a href="{{membersurl}}">{{membercount}}</a>)
+                        </span>
+                    </div>
                 {{/sourcegroups}}
             </td>
             <td>
-                <span data-local_groupmerge-groupid="{{targetgroup.id}}">{{targetgroup.name}}</span>
+                <span data-local_groupmerge-groupid="{{targetgroup.id}}">
+                    <a href="{{targetgroup.editurl}}">{{targetgroup.name}}</a>
+                    (<a href="{{targetgroup.membersurl}}">{{targetgroup.membercount}}</a>)
+                </span>
             </td>
             <td class="text-center text-nowrap">
                 {{#pix}} {{typeicon}}, local_groupmerge, {{typename}} {{/pix}}
