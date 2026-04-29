@@ -36,7 +36,7 @@
                     "name": "Target Group A"
                 },
                 "typename": "Subset",
-                "typeicon": "fa-less-than-equal"
+                "typeicon": "type_subset"
             }
         ]
     }
@@ -93,7 +93,7 @@
                 <span data-local_groupmerge-groupid="{{targetgroup.id}}">{{targetgroup.name}}</span>
             </td>
             <td class="text-center text-nowrap">
-                <i class="icon fa-solid {{typeicon}} fa-fw" title="{{typename}}" role="img" aria-label="{{typename}}"></i>
+                {{#pix}} {{typeicon}}, local_groupmerge, {{typename}} {{/pix}}
             </td>
             <td class="text-nowrap">
                 <a href="#" data-action="edit" data-local_groupmerge-mappingid="{{mappingid}}"

@@ -79,8 +79,8 @@ class mapping_table implements renderable, templatable {
                 ? get_string('type_cover', 'local_groupmerge')
                 : get_string('type_subset', 'local_groupmerge');
             $mapping->typeicon = $mapping->type === group_syncer::TYPE_COVER
-                ? 'fa-equals'
-                : 'fa-less-than-equal';
+                ? 'type_cover'
+                : 'type_subset';
             // Ensure mappingname is available for template.
             $mapping->mappingname = $mapping->mappingname ?? '';
         }

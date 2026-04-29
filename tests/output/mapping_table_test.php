@@ -99,7 +99,7 @@ final class mapping_table_test extends \advanced_testcase {
         $this->assertEquals('My mapping', $mapping->mappingname);
         $this->assertEquals(group_syncer::TYPE_COVER, $mapping->type);
         $this->assertEquals(get_string('type_cover', 'local_groupmerge'), $mapping->typename);
-        $this->assertEquals('fa-equals', $mapping->typeicon);
+        $this->assertEquals('type_cover', $mapping->typeicon);
 
         // Target group name should include member count.
         $this->assertStringContainsString('Group 3', $mapping->targetgroup->name);
@@ -134,7 +134,7 @@ final class mapping_table_test extends \advanced_testcase {
 
         $this->assertCount(1, $result->mappings);
         $this->assertEquals(get_string('type_subset', 'local_groupmerge'), $result->mappings[0]->typename);
-        $this->assertEquals('fa-less-than-equal', $result->mappings[0]->typeicon);
+        $this->assertEquals('type_subset', $result->mappings[0]->typeicon);
     }
 
     /**
