@@ -88,16 +88,24 @@
                 {{#sourcegroups}}
                     <div>
                         <span data-local_groupmerge-groupid="{{id}}">
-                            <a href="{{editurl}}">{{name}}</a>
-                            (<a href="{{membersurl}}">{{membercount}}</a>)
+                            <a href="{{editurl}}"
+                               title="{{#str}} editgroupsettings, local_groupmerge, {{name}} {{/str}}"
+                               aria-label="{{#str}} editgroupsettings, local_groupmerge, {{name}} {{/str}}">{{name}}</a>
+                            (<a href="{{membersurl}}"
+                                title="{{#str}} managemembers, local_groupmerge, {{membercount}} {{/str}}"
+                                aria-label="{{#str}} managemembers, local_groupmerge, {{membercount}} {{/str}}">{{membercount}}</a>)
                         </span>
                     </div>
                 {{/sourcegroups}}
             </td>
             <td>
                 <span data-local_groupmerge-groupid="{{targetgroup.id}}">
-                    <a href="{{targetgroup.editurl}}">{{targetgroup.name}}</a>
-                    (<a href="{{targetgroup.membersurl}}">{{targetgroup.membercount}}</a>)
+                    <a href="{{targetgroup.editurl}}"
+                       title="{{#str}} editgroupsettings, local_groupmerge, {{targetgroup.name}} {{/str}}"
+                       aria-label="{{#str}} editgroupsettings, local_groupmerge, {{targetgroup.name}} {{/str}}">{{targetgroup.name}}</a>
+                    (<a href="{{targetgroup.membersurl}}"
+                        title="{{#str}} managemembers, local_groupmerge, {{targetgroup.membercount}} {{/str}}"
+                        aria-label="{{#str}} managemembers, local_groupmerge, {{targetgroup.membercount}} {{/str}}">{{targetgroup.membercount}}</a>)
                 </span>
             </td>
             <td class="text-center text-nowrap">
