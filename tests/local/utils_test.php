@@ -117,20 +117,20 @@ final class utils_test extends \advanced_testcase {
 
     /**
      * Tests {@see utils::get_mapping_records_for_course} returns no records for a course without mappings.
-     *
-     */    public function test_get_mapping_records_for_course_empty(): void {
+     */
+    public function test_get_mapping_records_for_course_empty(): void {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
 
         $records = utils::get_mapping_records_for_course($course->id);
 
         $this->assertEmpty($records);
-}
+    }
 
     /**
      * Tests {@see utils::get_mapping_records_for_course} returns correct records for a course with mappings.
-     *
-     */    public function test_get_mapping_records_for_course_with_mappings(): void {
+     */
+    public function test_get_mapping_records_for_course_with_mappings(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -149,12 +149,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertContains((string) $groupb->id, $sourcegroupids);
         $this->assertCount(1, $targetgroupids);
         $this->assertEquals((string) $groupc->id, reset($targetgroupids));
-}
+    }
 
     /**
      * Tests {@see utils::get_mapping_records_for_course} only returns records belonging to the requested course.
-     *
-     */    public function test_get_mapping_records_for_course_isolates_courses(): void {
+     */
+    public function test_get_mapping_records_for_course_isolates_courses(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -180,12 +180,12 @@ final class utils_test extends \advanced_testcase {
         $record2 = reset($records2);
         $this->assertEquals($group2a->id, $record2->sourcegroupid);
         $this->assertEquals($group2b->id, $record2->targetgroupid);
-}
+    }
 
     /**
      * Tests {@see utils::get_group_mappings_with_group_name} returns empty array for a course without mappings.
-     *
-     */    public function test_get_group_mappings_with_group_name_empty(): void {
+     */
+    public function test_get_group_mappings_with_group_name_empty(): void {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
 
@@ -193,12 +193,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
-}
+    }
 
     /**
      * Tests {@see utils::get_group_mappings_with_group_name} returns correctly structured and sorted mappings.
-     *
-     */    public function test_get_group_mappings_with_group_name_structure_and_sorting(): void {
+     */
+    public function test_get_group_mappings_with_group_name_structure_and_sorting(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -231,12 +231,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertCount(2, $result[1]->sourcegroups);
         $this->assertEquals('Alpha', $result[1]->sourcegroups[0]->name);
         $this->assertEquals('Gamma', $result[1]->sourcegroups[1]->name);
-}
+    }
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns empty array when no mappings exist.
-     *
-     */    public function test_get_sourcegroup_userids_for_targetgroup_no_mappings(): void {
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_no_mappings(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -246,12 +246,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
-}
+    }
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns users from a single source group.
-     *
-     */    public function test_get_sourcegroup_userids_for_targetgroup_single_source(): void {
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_single_source(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -273,12 +273,12 @@ final class utils_test extends \advanced_testcase {
         $sourcemembers = reset($result);
         $this->assertArrayHasKey($user1->id, $sourcemembers);
         $this->assertArrayHasKey($user2->id, $sourcemembers);
-}
+    }
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns users from multiple source groups.
-     *
-     */    public function test_get_sourcegroup_userids_for_targetgroup_multiple_sources(): void {
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_multiple_sources(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -310,18 +310,18 @@ final class utils_test extends \advanced_testcase {
 
         // Collect all user IDs across all source group results.
         $alluserids = [];
-    foreach ($result as $members) {
-        $alluserids = array_merge($alluserids, array_keys($members));
-    }
+        foreach ($result as $members) {
+            $alluserids = array_merge($alluserids, array_keys($members));
+        }
         $this->assertContains((int) $user1->id, $alluserids);
         $this->assertContains((int) $user2->id, $alluserids);
         $this->assertContains((int) $user3->id, $alluserids);
-}
+    }
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} includes a user present in multiple source groups.
-     *
-     */    public function test_get_sourcegroup_userids_for_targetgroup_user_in_multiple_sources(): void {
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_user_in_multiple_sources(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -348,15 +348,15 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertCount(2, $result);
         // User appears in both source group results.
-    foreach ($result as $members) {
-        $this->assertArrayHasKey($user1->id, $members);
+        foreach ($result as $members) {
+            $this->assertArrayHasKey($user1->id, $members);
+        }
     }
-}
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} with an empty source group.
-     *
-     */    public function test_get_sourcegroup_userids_for_targetgroup_empty_source_group(): void {
+     */
+    public function test_get_sourcegroup_userids_for_targetgroup_empty_source_group(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -373,12 +373,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertCount(1, $result);
         $sourcemembers = reset($result);
         $this->assertEmpty($sourcemembers);
-}
+    }
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} returns empty array for a course without mappings.
-     *
-     */    public function test_get_resolved_mappings_empty(): void {
+     */
+    public function test_get_resolved_mappings_empty(): void {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
 
@@ -386,12 +386,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
-}
+    }
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} omits purely direct mappings (no transitivity).
-     *
-     */    public function test_get_resolved_mappings_no_transitivity(): void {
+     */
+    public function test_get_resolved_mappings_no_transitivity(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -405,7 +405,7 @@ final class utils_test extends \advanced_testcase {
         $result = utils::get_resolved_mappings_for_course($course->id);
 
         $this->assertEmpty($result);
-}
+    }
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} resolves transitive mappings.
@@ -414,8 +414,8 @@ final class utils_test extends \advanced_testcase {
      * Expected: Only D appears (transitive). Since C is a cover-mode target, its members are exactly
      * the union of A and B, so C itself is not shown. D's effective sources are A, B.
      * C itself is purely direct, so it is not listed either.
-     *
-     */    public function test_get_resolved_mappings_transitive(): void {
+     */
+    public function test_get_resolved_mappings_transitive(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -438,7 +438,7 @@ final class utils_test extends \advanced_testcase {
         $this->assertEquals('Delta', $result[0]->targetgroup->name);
         $names = array_column($result[0]->sourcegroups, 'name');
         $this->assertEquals(['Alpha', 'Beta'], $names);
-}
+    }
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} resolves a three-level chain with cover mode.
@@ -448,8 +448,8 @@ final class utils_test extends \advanced_testcase {
      * B is purely direct (omitted).
      * C has direct source B, but B is cover-mode -> hidden -> C gets [Alpha].
      * D has direct source C, but C is cover-mode -> hidden -> D gets [Alpha].
-     *
-     */    public function test_get_resolved_mappings_deep_chain(): void {
+     */
+    public function test_get_resolved_mappings_deep_chain(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -479,7 +479,7 @@ final class utils_test extends \advanced_testcase {
         $this->assertEquals('Delta', $result[1]->targetgroup->name);
         $names1 = array_column($result[1]->sourcegroups, 'name');
         $this->assertEquals(['Alpha'], $names1);
-}
+    }
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} keeps subset-mode in-between groups visible.
@@ -487,8 +487,8 @@ final class utils_test extends \advanced_testcase {
      * Setup: C <- A, B (subset) and D <- C (cover).
      * C is a subset-mode target, so it may have extra members and IS shown.
      * D's effective sources: A, B, C (C is kept because its mapping type is subset).
-     *
-     */    public function test_get_resolved_mappings_transitive_subset_inbetween_shown(): void {
+     */
+    public function test_get_resolved_mappings_transitive_subset_inbetween_shown(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -511,7 +511,7 @@ final class utils_test extends \advanced_testcase {
         $names = array_column($result[0]->sourcegroups, 'name');
         // C is subset-mode, so it IS shown alongside its resolved sources.
         $this->assertEquals(['Alpha', 'Beta', 'Charlie'], $names);
-}
+    }
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} with mixed cover/subset in-between groups.
@@ -521,8 +521,8 @@ final class utils_test extends \advanced_testcase {
      * C is subset-mode -> shown in D's resolved sources.
      * D's effective sources: A (from B, which is hidden), A + C (C is shown, its source A is also resolved).
      * Deduplicated: [Alpha, Charlie].
-     *
-     */    public function test_get_resolved_mappings_mixed_cover_subset(): void {
+     */
+    public function test_get_resolved_mappings_mixed_cover_subset(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -542,22 +542,22 @@ final class utils_test extends \advanced_testcase {
 
         // Find Delta in the results.
         $deltamapping = null;
-    foreach ($result as $mapping) {
-        if ($mapping->targetgroup->name === 'Delta') {
-            $deltamapping = $mapping;
-            break;
+        foreach ($result as $mapping) {
+            if ($mapping->targetgroup->name === 'Delta') {
+                $deltamapping = $mapping;
+                break;
+            }
         }
-    }
         $this->assertNotNull($deltamapping, 'Delta should appear in resolved mappings');
         $names = array_column($deltamapping->sourcegroups, 'name');
         // B (cover) is hidden, C (subset) is shown, A is a leaf source from both branches.
         $this->assertEquals(['Alpha', 'Charlie'], $names);
-}
+    }
 
     /**
      * Tests {@see utils::create_mapping} creates all records correctly.
-     *
-     */    public function test_create_mapping(): void {
+     */
+    public function test_create_mapping(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -591,12 +591,12 @@ final class utils_test extends \advanced_testcase {
         $sourcegroupids = array_column($sourcerecords, 'sourcegroupid');
         $this->assertContains((string) $groupa->id, $sourcegroupids);
         $this->assertContains((string) $groupb->id, $sourcegroupids);
-}
+    }
 
     /**
      * Tests {@see utils::create_mapping} uses default type when not specified.
-     *
-     */    public function test_create_mapping_default_type(): void {
+     */
+    public function test_create_mapping_default_type(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -609,12 +609,12 @@ final class utils_test extends \advanced_testcase {
         $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
         $this->assertEquals(group_syncer::TYPE_SUBSET, (int) $mapping->type);
         $this->assertNull($mapping->name);
-}
+    }
 
     /**
      * Tests {@see utils::update_mapping} updates metadata and replaces source groups.
-     *
-     */    public function test_update_mapping(): void {
+     */
+    public function test_update_mapping(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -650,12 +650,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertCount(1, $sourcerecords);
         $sourcerecord = reset($sourcerecords);
         $this->assertEquals($groupd->id, $sourcerecord->sourcegroupid);
-}
+    }
 
     /**
      * Tests {@see utils::update_mapping} can set name to null.
-     *
-     */    public function test_update_mapping_null_name(): void {
+     */
+    public function test_update_mapping_null_name(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -669,12 +669,12 @@ final class utils_test extends \advanced_testcase {
 
         $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
         $this->assertNull($mapping->name);
-}
+    }
 
     /**
      * Tests {@see utils::create_mapping} throws exception when target group belongs to a different course.
-     *
-     */    public function test_create_mapping_target_wrong_course(): void {
+     */
+    public function test_create_mapping_target_wrong_course(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -684,12 +684,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->expectException(\coding_exception::class);
         utils::create_mapping($course1->id, $target->id, [$source->id]);
-}
+    }
 
     /**
      * Tests {@see utils::create_mapping} throws exception when a source group belongs to a different course.
-     *
-     */    public function test_create_mapping_source_wrong_course(): void {
+     */
+    public function test_create_mapping_source_wrong_course(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -700,12 +700,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->expectException(\coding_exception::class);
         utils::create_mapping($course1->id, $target->id, [$goodsource->id, $badsource->id]);
-}
+    }
 
     /**
      * Tests {@see utils::update_mapping} throws exception when a source group belongs to a different course.
-     *
-     */    public function test_update_mapping_source_wrong_course(): void {
+     */
+    public function test_update_mapping_source_wrong_course(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -718,12 +718,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->expectException(\coding_exception::class);
         utils::update_mapping($mappingid, [$foreigngroup->id], group_syncer::TYPE_COVER);
-}
+    }
 
     /**
      * Tests {@see utils::delete_mapping} removes all related records.
-     *
-     */    public function test_delete_mapping(): void {
+     */
+    public function test_delete_mapping(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -746,13 +746,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
-}
-
+    }
 
     /**
      * Tests {@see utils::get_orphaned_mapping_ids} returns empty array when all mappings have source groups.
-     *
-     */    public function test_get_orphaned_mapping_ids_none(): void {
+     */
+    public function test_get_orphaned_mapping_ids_none(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -762,12 +761,12 @@ final class utils_test extends \advanced_testcase {
         utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER);
 
         $this->assertEmpty(utils::get_orphaned_mapping_ids());
-}
+    }
 
     /**
      * Tests {@see utils::get_orphaned_mapping_ids} detects a mapping whose source groups have been removed.
-     *
-     */    public function test_get_orphaned_mapping_ids_with_orphan(): void {
+     */
+    public function test_get_orphaned_mapping_ids_with_orphan(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -780,7 +779,7 @@ final class utils_test extends \advanced_testcase {
         // Mapping 1: B <- A (will become orphaned).
         $mappingid1 = utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER);
         // Mapping 2: D <- C (stays intact).
-        $mappingid2 = utils::create_mapping($course->id, $groupd->id, [$groupc->id], group_syncer::TYPE_COVER);
+        utils::create_mapping($course->id, $groupd->id, [$groupc->id], group_syncer::TYPE_COVER);
 
         // Manually remove all source groups of mapping 1 to simulate an orphan.
         $DB->delete_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid1]);
@@ -789,14 +788,96 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertCount(1, $orphanedids);
         $this->assertEquals($mappingid1, $orphanedids[0]);
-}
+    }
 
     /**
      * Tests {@see utils::get_orphaned_mapping_ids} returns empty array when no mappings exist at all.
-     *
-     */    public function test_get_orphaned_mapping_ids_no_mappings(): void {
+     */
+    public function test_get_orphaned_mapping_ids_no_mappings(): void {
         $this->resetAfterTest();
 
         $this->assertEmpty(utils::get_orphaned_mapping_ids());
-}
+    }
+
+    /**
+     * Tests {@see utils::can_add_mapping} returns false when course has fewer than 2 groups.
+     */
+    public function test_can_add_mapping_not_enough_groups(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $this->assertFalse(utils::can_add_mapping($course->id));
+
+        // Only one group — still not enough.
+        $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $this->assertFalse(utils::can_add_mapping($course->id));
+    }
+
+    /**
+     * Tests {@see utils::can_add_mapping} returns true when at least one target group is available.
+     */
+    public function test_can_add_mapping_available_target(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        $this->assertTrue(utils::can_add_mapping($course->id));
+    }
+
+    /**
+     * Tests {@see utils::can_add_mapping} returns false when all groups are already used as targets.
+     */
+    public function test_can_add_mapping_all_targets_used(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        // Map A <- B, so A is used as target. B is also used as target via another mapping would exhaust all.
+        // With only 2 groups: A is target, B is source. B is still available as target.
+        utils::create_mapping($course->id, $groupa->id, [$groupb->id], group_syncer::TYPE_COVER);
+        // B is still available as target.
+        $this->assertTrue(utils::can_add_mapping($course->id));
+
+        // Now also use B as target.
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        utils::create_mapping($course->id, $groupb->id, [$groupc->id], group_syncer::TYPE_COVER);
+        // Now C is still available as target.
+        $this->assertTrue(utils::can_add_mapping($course->id));
+
+        // Use C as target too — now all groups are used.
+        utils::create_mapping($course->id, $groupc->id, [$groupa->id], group_syncer::TYPE_SUBSET);
+        $this->assertFalse(utils::can_add_mapping($course->id));
+    }
+
+    /**
+     * Tests {@see utils::can_add_mapping} returns false when remaining groups are restricted by hook.
+     */
+    public function test_can_add_mapping_restricted_by_hook(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        // Use A as target in a mapping. B is the only remaining candidate.
+        utils::create_mapping($course->id, $groupa->id, [$groupb->id], group_syncer::TYPE_COVER);
+
+        // Without restriction, B is available as target.
+        $this->assertTrue(utils::can_add_mapping($course->id));
+
+        // Restrict B via hook redirect — now no target is available.
+        $restrictedbid = $groupb->id;
+        $this->redirectHook(
+            \local_groupmerge\hook\restrict_target_groups::class,
+            function (\local_groupmerge\hook\restrict_target_groups $hook) use ($restrictedbid) {
+                $hook->add_unallowed_groupid($restrictedbid, 'test restriction');
+            }
+        );
+
+        $this->assertFalse(utils::can_add_mapping($course->id));
+    }
 }

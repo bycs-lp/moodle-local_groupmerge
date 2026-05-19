@@ -687,4 +687,45 @@ class utils {
         $DB->delete_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]);
         $DB->delete_records('local_groupmerge_mapping', ['id' => $mappingid]);
     }
+
+    /**
+     * Check whether a new mapping can be created for a course.
+     *
+     * A new mapping can be created when the course has at least 2 groups AND at least one group
+     * is available as a target — meaning it is neither already used as a target in an existing
+     * mapping nor restricted by subscribers of the {@see restrict_target_groups} hook.
+     *
+     * @param int $courseid The course id
+     * @return bool true if a new mapping can be added, false otherwise
+     */
+    public static function can_add_mapping(int $courseid): bool {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $allgroups = groups_get_all_groups($courseid);
+        if (count($allgroups) < 2) {
+            return false;
+        }
+
+        // Determine which groups are already used as targets.
+        $mappings = self::get_group_mappings_with_group_name($courseid);
+        $usedtargetids = [];
+        foreach ($mappings as $mapping) {
+            $usedtargetids[$mapping->targetgroup->id] = true;
+        }
+
+        // Determine which groups are restricted by hook subscribers.
+        $hook = new restrict_target_groups($courseid);
+        \core\di::get(\core\hook\manager::class)->dispatch($hook);
+        $restrictedids = $hook->get_unallowed_targetgroupids();
+
+        // Check if at least one group is available as target.
+        foreach ($allgroups as $group) {
+            if (!isset($usedtargetids[$group->id]) && !array_key_exists($group->id, $restrictedids)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
