@@ -16,6 +16,7 @@
 
 namespace local_groupmerge\output;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the unallowed_targetgroups_info output class.
@@ -24,8 +25,8 @@ namespace local_groupmerge\output;
  * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_groupmerge\output\unallowed_targetgroups_info
  */
+#[CoversClass(\local_groupmerge\output\unallowed_targetgroups_info::class)]
 final class unallowed_targetgroups_info_test extends \advanced_testcase {
     /**
      * Test that a single disallowed group produces one entry with correct data.

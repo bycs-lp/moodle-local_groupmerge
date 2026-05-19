@@ -16,6 +16,9 @@
 
 namespace local_groupmerge\local;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+
 /**
  * Unit tests for the utils class of local_groupmerge.
  *
@@ -24,6 +27,7 @@ namespace local_groupmerge\local;
  * @author    Philipp Memmel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\local_groupmerge\local\utils::class)]
 final class utils_test extends \advanced_testcase {
     /**
      * Data provider for {@see test_has_circular_mapping}.
@@ -87,11 +91,10 @@ final class utils_test extends \advanced_testcase {
     /**
      * Tests {@see utils::has_circular_mapping} with various graph configurations.
      *
-     * @dataProvider has_circular_mapping_provider
-     * @covers \local_groupmerge\local\utils::has_circular_mapping
      * @param array $mappings Full set of mappings as [['sourcegroupid' => int, 'targetgroupid' => int], ...]
      * @param bool $expected Expected return value
      */
+    #[DataProvider('has_circular_mapping_provider')]
     public function test_has_circular_mapping(array $mappings, bool $expected): void {
         $this->assertEquals($expected, utils::has_circular_mapping($mappings));
     }
@@ -99,23 +102,19 @@ final class utils_test extends \advanced_testcase {
     /**
      * Tests {@see utils::get_mapping_records_for_course} returns no records for a course without mappings.
      *
-     * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
-     */
-    public function test_get_mapping_records_for_course_empty(): void {
+     */    public function test_get_mapping_records_for_course_empty(): void {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
 
         $records = utils::get_mapping_records_for_course($course->id);
 
         $this->assertEmpty($records);
-    }
+}
 
     /**
      * Tests {@see utils::get_mapping_records_for_course} returns correct records for a course with mappings.
      *
-     * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
-     */
-    public function test_get_mapping_records_for_course_with_mappings(): void {
+     */    public function test_get_mapping_records_for_course_with_mappings(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -134,14 +133,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertContains((string) $groupb->id, $sourcegroupids);
         $this->assertCount(1, $targetgroupids);
         $this->assertEquals((string) $groupc->id, reset($targetgroupids));
-    }
+}
 
     /**
      * Tests {@see utils::get_mapping_records_for_course} only returns records belonging to the requested course.
      *
-     * @covers \local_groupmerge\local\utils::get_mapping_records_for_course
-     */
-    public function test_get_mapping_records_for_course_isolates_courses(): void {
+     */    public function test_get_mapping_records_for_course_isolates_courses(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -167,14 +164,12 @@ final class utils_test extends \advanced_testcase {
         $record2 = reset($records2);
         $this->assertEquals($group2a->id, $record2->sourcegroupid);
         $this->assertEquals($group2b->id, $record2->targetgroupid);
-    }
+}
 
     /**
      * Tests {@see utils::get_group_mappings_with_group_name} returns empty array for a course without mappings.
      *
-     * @covers \local_groupmerge\local\utils::get_group_mappings_with_group_name
-     */
-    public function test_get_group_mappings_with_group_name_empty(): void {
+     */    public function test_get_group_mappings_with_group_name_empty(): void {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
 
@@ -182,14 +177,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
-    }
+}
 
     /**
      * Tests {@see utils::get_group_mappings_with_group_name} returns correctly structured and sorted mappings.
      *
-     * @covers \local_groupmerge\local\utils::get_group_mappings_with_group_name
-     */
-    public function test_get_group_mappings_with_group_name_structure_and_sorting(): void {
+     */    public function test_get_group_mappings_with_group_name_structure_and_sorting(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -222,14 +215,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertCount(2, $result[1]->sourcegroups);
         $this->assertEquals('Alpha', $result[1]->sourcegroups[0]->name);
         $this->assertEquals('Gamma', $result[1]->sourcegroups[1]->name);
-    }
+}
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns empty array when no mappings exist.
      *
-     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
-     */
-    public function test_get_sourcegroup_userids_for_targetgroup_no_mappings(): void {
+     */    public function test_get_sourcegroup_userids_for_targetgroup_no_mappings(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -239,14 +230,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
-    }
+}
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns users from a single source group.
      *
-     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
-     */
-    public function test_get_sourcegroup_userids_for_targetgroup_single_source(): void {
+     */    public function test_get_sourcegroup_userids_for_targetgroup_single_source(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -268,14 +257,12 @@ final class utils_test extends \advanced_testcase {
         $sourcemembers = reset($result);
         $this->assertArrayHasKey($user1->id, $sourcemembers);
         $this->assertArrayHasKey($user2->id, $sourcemembers);
-    }
+}
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} returns users from multiple source groups.
      *
-     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
-     */
-    public function test_get_sourcegroup_userids_for_targetgroup_multiple_sources(): void {
+     */    public function test_get_sourcegroup_userids_for_targetgroup_multiple_sources(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -307,20 +294,18 @@ final class utils_test extends \advanced_testcase {
 
         // Collect all user IDs across all source group results.
         $alluserids = [];
-        foreach ($result as $members) {
-            $alluserids = array_merge($alluserids, array_keys($members));
-        }
+    foreach ($result as $members) {
+        $alluserids = array_merge($alluserids, array_keys($members));
+    }
         $this->assertContains((int) $user1->id, $alluserids);
         $this->assertContains((int) $user2->id, $alluserids);
         $this->assertContains((int) $user3->id, $alluserids);
-    }
+}
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} includes a user present in multiple source groups.
      *
-     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
-     */
-    public function test_get_sourcegroup_userids_for_targetgroup_user_in_multiple_sources(): void {
+     */    public function test_get_sourcegroup_userids_for_targetgroup_user_in_multiple_sources(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -347,17 +332,15 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertCount(2, $result);
         // User appears in both source group results.
-        foreach ($result as $members) {
-            $this->assertArrayHasKey($user1->id, $members);
-        }
+    foreach ($result as $members) {
+        $this->assertArrayHasKey($user1->id, $members);
     }
+}
 
     /**
      * Tests {@see utils::get_sourcegroup_userids_for_targetgroup} with an empty source group.
      *
-     * @covers \local_groupmerge\local\utils::get_sourcegroup_userids_for_targetgroup
-     */
-    public function test_get_sourcegroup_userids_for_targetgroup_empty_source_group(): void {
+     */    public function test_get_sourcegroup_userids_for_targetgroup_empty_source_group(): void {
         global $CFG;
         require_once($CFG->dirroot . '/group/lib.php');
         $this->resetAfterTest();
@@ -374,14 +357,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertCount(1, $result);
         $sourcemembers = reset($result);
         $this->assertEmpty($sourcemembers);
-    }
+}
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} returns empty array for a course without mappings.
      *
-     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
-     */
-    public function test_get_resolved_mappings_empty(): void {
+     */    public function test_get_resolved_mappings_empty(): void {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
 
@@ -389,14 +370,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertIsArray($result);
         $this->assertEmpty($result);
-    }
+}
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} omits purely direct mappings (no transitivity).
      *
-     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
-     */
-    public function test_get_resolved_mappings_no_transitivity(): void {
+     */    public function test_get_resolved_mappings_no_transitivity(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -410,7 +389,7 @@ final class utils_test extends \advanced_testcase {
         $result = utils::get_resolved_mappings_for_course($course->id);
 
         $this->assertEmpty($result);
-    }
+}
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} resolves transitive mappings.
@@ -420,9 +399,7 @@ final class utils_test extends \advanced_testcase {
      * the union of A and B, so C itself is not shown. D's effective sources are A, B.
      * C itself is purely direct, so it is not listed either.
      *
-     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
-     */
-    public function test_get_resolved_mappings_transitive(): void {
+     */    public function test_get_resolved_mappings_transitive(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -445,7 +422,7 @@ final class utils_test extends \advanced_testcase {
         $this->assertEquals('Delta', $result[0]->targetgroup->name);
         $names = array_column($result[0]->sourcegroups, 'name');
         $this->assertEquals(['Alpha', 'Beta'], $names);
-    }
+}
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} resolves a three-level chain with cover mode.
@@ -456,9 +433,7 @@ final class utils_test extends \advanced_testcase {
      * C has direct source B, but B is cover-mode -> hidden -> C gets [Alpha].
      * D has direct source C, but C is cover-mode -> hidden -> D gets [Alpha].
      *
-     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
-     */
-    public function test_get_resolved_mappings_deep_chain(): void {
+     */    public function test_get_resolved_mappings_deep_chain(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -488,7 +463,7 @@ final class utils_test extends \advanced_testcase {
         $this->assertEquals('Delta', $result[1]->targetgroup->name);
         $names1 = array_column($result[1]->sourcegroups, 'name');
         $this->assertEquals(['Alpha'], $names1);
-    }
+}
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} keeps subset-mode in-between groups visible.
@@ -497,9 +472,7 @@ final class utils_test extends \advanced_testcase {
      * C is a subset-mode target, so it may have extra members and IS shown.
      * D's effective sources: A, B, C (C is kept because its mapping type is subset).
      *
-     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
-     */
-    public function test_get_resolved_mappings_transitive_subset_inbetween_shown(): void {
+     */    public function test_get_resolved_mappings_transitive_subset_inbetween_shown(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -522,7 +495,7 @@ final class utils_test extends \advanced_testcase {
         $names = array_column($result[0]->sourcegroups, 'name');
         // C is subset-mode, so it IS shown alongside its resolved sources.
         $this->assertEquals(['Alpha', 'Beta', 'Charlie'], $names);
-    }
+}
 
     /**
      * Tests {@see utils::get_resolved_mappings_for_course} with mixed cover/subset in-between groups.
@@ -533,9 +506,7 @@ final class utils_test extends \advanced_testcase {
      * D's effective sources: A (from B, which is hidden), A + C (C is shown, its source A is also resolved).
      * Deduplicated: [Alpha, Charlie].
      *
-     * @covers \local_groupmerge\local\utils::get_resolved_mappings_for_course
-     */
-    public function test_get_resolved_mappings_mixed_cover_subset(): void {
+     */    public function test_get_resolved_mappings_mixed_cover_subset(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -555,24 +526,22 @@ final class utils_test extends \advanced_testcase {
 
         // Find Delta in the results.
         $deltamapping = null;
-        foreach ($result as $mapping) {
-            if ($mapping->targetgroup->name === 'Delta') {
-                $deltamapping = $mapping;
-                break;
-            }
+    foreach ($result as $mapping) {
+        if ($mapping->targetgroup->name === 'Delta') {
+            $deltamapping = $mapping;
+            break;
         }
+    }
         $this->assertNotNull($deltamapping, 'Delta should appear in resolved mappings');
         $names = array_column($deltamapping->sourcegroups, 'name');
         // B (cover) is hidden, C (subset) is shown, A is a leaf source from both branches.
         $this->assertEquals(['Alpha', 'Charlie'], $names);
-    }
+}
 
     /**
      * Tests {@see utils::create_mapping} creates all records correctly.
      *
-     * @covers \local_groupmerge\local\utils::create_mapping
-     */
-    public function test_create_mapping(): void {
+     */    public function test_create_mapping(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -606,14 +575,12 @@ final class utils_test extends \advanced_testcase {
         $sourcegroupids = array_column($sourcerecords, 'sourcegroupid');
         $this->assertContains((string) $groupa->id, $sourcegroupids);
         $this->assertContains((string) $groupb->id, $sourcegroupids);
-    }
+}
 
     /**
      * Tests {@see utils::create_mapping} uses default type when not specified.
      *
-     * @covers \local_groupmerge\local\utils::create_mapping
-     */
-    public function test_create_mapping_default_type(): void {
+     */    public function test_create_mapping_default_type(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -626,14 +593,12 @@ final class utils_test extends \advanced_testcase {
         $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
         $this->assertEquals(group_syncer::TYPE_SUBSET, (int) $mapping->type);
         $this->assertNull($mapping->name);
-    }
+}
 
     /**
      * Tests {@see utils::update_mapping} updates metadata and replaces source groups.
      *
-     * @covers \local_groupmerge\local\utils::update_mapping
-     */
-    public function test_update_mapping(): void {
+     */    public function test_update_mapping(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -669,14 +634,12 @@ final class utils_test extends \advanced_testcase {
         $this->assertCount(1, $sourcerecords);
         $sourcerecord = reset($sourcerecords);
         $this->assertEquals($groupd->id, $sourcerecord->sourcegroupid);
-    }
+}
 
     /**
      * Tests {@see utils::update_mapping} can set name to null.
      *
-     * @covers \local_groupmerge\local\utils::update_mapping
-     */
-    public function test_update_mapping_null_name(): void {
+     */    public function test_update_mapping_null_name(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -690,14 +653,12 @@ final class utils_test extends \advanced_testcase {
 
         $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
         $this->assertNull($mapping->name);
-    }
+}
 
     /**
      * Tests {@see utils::create_mapping} throws exception when target group belongs to a different course.
      *
-     * @covers \local_groupmerge\local\utils::create_mapping
-     */
-    public function test_create_mapping_target_wrong_course(): void {
+     */    public function test_create_mapping_target_wrong_course(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -707,14 +668,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->expectException(\coding_exception::class);
         utils::create_mapping($course1->id, $target->id, [$source->id]);
-    }
+}
 
     /**
      * Tests {@see utils::create_mapping} throws exception when a source group belongs to a different course.
      *
-     * @covers \local_groupmerge\local\utils::create_mapping
-     */
-    public function test_create_mapping_source_wrong_course(): void {
+     */    public function test_create_mapping_source_wrong_course(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -725,14 +684,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->expectException(\coding_exception::class);
         utils::create_mapping($course1->id, $target->id, [$goodsource->id, $badsource->id]);
-    }
+}
 
     /**
      * Tests {@see utils::update_mapping} throws exception when a source group belongs to a different course.
      *
-     * @covers \local_groupmerge\local\utils::update_mapping
-     */
-    public function test_update_mapping_source_wrong_course(): void {
+     */    public function test_update_mapping_source_wrong_course(): void {
         $this->resetAfterTest();
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -745,14 +702,12 @@ final class utils_test extends \advanced_testcase {
 
         $this->expectException(\coding_exception::class);
         utils::update_mapping($mappingid, [$foreigngroup->id], group_syncer::TYPE_COVER);
-    }
+}
 
     /**
      * Tests {@see utils::delete_mapping} removes all related records.
      *
-     * @covers \local_groupmerge\local\utils::delete_mapping
-     */
-    public function test_delete_mapping(): void {
+     */    public function test_delete_mapping(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -775,15 +730,13 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
-    }
+}
 
 
     /**
      * Tests {@see utils::get_orphaned_mapping_ids} returns empty array when all mappings have source groups.
      *
-     * @covers \local_groupmerge\local\utils::get_orphaned_mapping_ids
-     */
-    public function test_get_orphaned_mapping_ids_none(): void {
+     */    public function test_get_orphaned_mapping_ids_none(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
@@ -793,14 +746,12 @@ final class utils_test extends \advanced_testcase {
         utils::create_mapping($course->id, $groupb->id, [$groupa->id], group_syncer::TYPE_COVER);
 
         $this->assertEmpty(utils::get_orphaned_mapping_ids());
-    }
+}
 
     /**
      * Tests {@see utils::get_orphaned_mapping_ids} detects a mapping whose source groups have been removed.
      *
-     * @covers \local_groupmerge\local\utils::get_orphaned_mapping_ids
-     */
-    public function test_get_orphaned_mapping_ids_with_orphan(): void {
+     */    public function test_get_orphaned_mapping_ids_with_orphan(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -822,16 +773,14 @@ final class utils_test extends \advanced_testcase {
 
         $this->assertCount(1, $orphanedids);
         $this->assertEquals($mappingid1, $orphanedids[0]);
-    }
+}
 
     /**
      * Tests {@see utils::get_orphaned_mapping_ids} returns empty array when no mappings exist at all.
      *
-     * @covers \local_groupmerge\local\utils::get_orphaned_mapping_ids
-     */
-    public function test_get_orphaned_mapping_ids_no_mappings(): void {
+     */    public function test_get_orphaned_mapping_ids_no_mappings(): void {
         $this->resetAfterTest();
 
         $this->assertEmpty(utils::get_orphaned_mapping_ids());
-    }
+}
 }

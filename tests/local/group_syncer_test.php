@@ -16,6 +16,8 @@
 
 namespace local_groupmerge\local;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
 
 /**
@@ -26,6 +28,7 @@ use stdClass;
  * @author    Philipp Memmel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+#[CoversClass(\local_groupmerge\local\group_syncer::class)]
 final class group_syncer_test extends \advanced_testcase {
     /**
      * Data provider for {@see test_sync_group_members}.
@@ -214,15 +217,13 @@ final class group_syncer_test extends \advanced_testcase {
     /**
      * Tests the synchronization of group members based on various mapping constellations.
      *
-     * @dataProvider sync_group_members_provider
-     * @covers \local_groupmerge\local\group_syncer::sync_group_members
-     *
      * @param array $sourcegroups Associative array of source group name => array of user names
      * @param array $mappings Associative array of target group name => array of source group names
      * @param int $type Mapping type (TYPE_SUBSET or TYPE_COVER)
      * @param array $initialtargetmembers Associative array of target group name => array of user names pre-populated
      * @param array $expectedtargetmembers Associative array of target group name => array of user names expected after sync
      */
+    #[DataProvider('sync_group_members_provider')]
     public function test_sync_group_members(
         array $sourcegroups,
         array $mappings,
@@ -323,8 +324,6 @@ final class group_syncer_test extends \advanced_testcase {
      * 4. Change mapping to COVER via update_mapping
      * 5. Sync again
      * 6. Extra user should be removed
-     *
-     * @covers \local_groupmerge\local\group_syncer::sync_group_members
      */
     public function test_sync_removes_extra_members_after_type_change_to_cover(): void {
         global $CFG;

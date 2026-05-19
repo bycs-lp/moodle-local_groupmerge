@@ -17,6 +17,7 @@
 namespace local_groupmerge\local;
 
 use core\event\group_deleted;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the observers class of local_groupmerge.
@@ -25,17 +26,14 @@ use core\event\group_deleted;
  * @copyright 2025 ISB Bayern
  * @author    Philipp Memmel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers    \local_groupmerge\local\observers
  */
+#[CoversClass(\local_groupmerge\local\observers::class)]
 final class observers_test extends \advanced_testcase {
     /**
      * Tests the event handler for the {@see group_deleted} event when a source group is deleted.
      *
      * When a source group is deleted, only the sourcegroup entry is removed from the mapping.
      * The mapping itself and the remaining source groups are preserved.
-     *
-     * @covers \local_groupmerge\local\observers::group_deleted
-     * @covers \local_groupmerge\local\utils::update_mappings_on_group_deletion
      */
     public function test_group_deleted_source(): void {
         global $CFG, $DB;
@@ -75,10 +73,6 @@ final class observers_test extends \advanced_testcase {
 
     /**
      * Tests the event handler for the {@see group_deleted} event when a target group is deleted.
-     *
-     * @covers \local_groupmerge\local\observers::group_deleted
-     * @covers \local_groupmerge\local\utils::update_mappings_on_group_deletion
-     * @covers \local_groupmerge\local\utils::delete_mapping
      */
     public function test_group_deleted_target(): void {
         global $CFG, $DB;
@@ -113,10 +107,6 @@ final class observers_test extends \advanced_testcase {
      *
      * When the deleted source group is the only source of a mapping, that mapping is also
      * fully removed (a mapping without source groups is meaningless).
-     *
-     * @covers \local_groupmerge\local\observers::group_deleted
-     * @covers \local_groupmerge\local\utils::update_mappings_on_group_deletion
-     * @covers \local_groupmerge\local\utils::delete_mapping
      */
     public function test_group_deleted_unrelated_mapping_preserved(): void {
         global $CFG, $DB;
@@ -156,10 +146,6 @@ final class observers_test extends \advanced_testcase {
 
     /**
      * Tests that deleting the last source group of a mapping removes the entire mapping.
-     *
-     * @covers \local_groupmerge\local\observers::group_deleted
-     * @covers \local_groupmerge\local\utils::update_mappings_on_group_deletion
-     * @covers \local_groupmerge\local\utils::delete_mapping
      */
     public function test_group_deleted_last_source_removes_mapping(): void {
         global $CFG, $DB;
@@ -195,9 +181,6 @@ final class observers_test extends \advanced_testcase {
      * Tests the event handler for the {@see \core\event\course_deleted} event.
      *
      * When a course is deleted, all mappings for that course must be removed.
-     *
-     * @covers \local_groupmerge\local\observers::course_deleted
-     * @covers \local_groupmerge\local\utils::delete_mapping
      */
     public function test_course_deleted(): void {
         global $DB;
@@ -239,9 +222,6 @@ final class observers_test extends \advanced_testcase {
 
     /**
      * Tests that deleting a course does not affect mappings in other courses.
-     *
-     * @covers \local_groupmerge\local\observers::course_deleted
-     * @covers \local_groupmerge\local\utils::delete_mapping
      */
     public function test_course_deleted_other_course_preserved(): void {
         global $DB;
@@ -267,9 +247,6 @@ final class observers_test extends \advanced_testcase {
      * Tests the event handler for the {@see \core\event\group_member_added} event.
      *
      * When a user is added to a source group, the user must be propagated to the target group.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_added
-     * @covers \local_groupmerge\local\utils::handle_group_member_added
      */
     public function test_group_member_added(): void {
         global $CFG;
@@ -301,9 +278,6 @@ final class observers_test extends \advanced_testcase {
 
     /**
      * Tests that adding a user to a source group propagates to target in subset mode as well.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_added
-     * @covers \local_groupmerge\local\utils::handle_group_member_added
      */
     public function test_group_member_added_subset(): void {
         global $CFG;
@@ -330,9 +304,6 @@ final class observers_test extends \advanced_testcase {
 
     /**
      * Tests that adding a user to a group without any mapping does not cause errors.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_added
-     * @covers \local_groupmerge\local\utils::handle_group_member_added
      */
     public function test_group_member_added_no_mapping(): void {
         global $CFG;
@@ -353,9 +324,6 @@ final class observers_test extends \advanced_testcase {
      * Tests the event handler for the {@see \core\event\group_member_removed} event in cover mode.
      *
      * In cover mode, removing a user from a source group must also remove the user from the target group.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_removed
-     * @covers \local_groupmerge\local\utils::handle_group_member_removed
      */
     public function test_group_member_removed_cover(): void {
         global $CFG;
@@ -388,9 +356,6 @@ final class observers_test extends \advanced_testcase {
      * Tests the event handler for the {@see \core\event\group_member_removed} event in subset mode.
      *
      * In subset mode, removing a user from a source group must NOT remove the user from the target group.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_removed
-     * @covers \local_groupmerge\local\utils::handle_group_member_removed
      */
     public function test_group_member_removed_subset(): void {
         global $CFG;
@@ -421,9 +386,6 @@ final class observers_test extends \advanced_testcase {
 
     /**
      * Tests that removing a user from a group without any mapping does not cause errors.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_removed
-     * @covers \local_groupmerge\local\utils::handle_group_member_removed
      */
     public function test_group_member_removed_no_mapping(): void {
         global $CFG;
@@ -447,9 +409,6 @@ final class observers_test extends \advanced_testcase {
      * if they are still a member of a source group (cover mode).
      *
      * The mapping rule takes precedence over manual removal. A notification must be shown.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_removed
-     * @covers \local_groupmerge\local\utils::handle_group_member_removed
      */
     public function test_group_member_removed_from_target_readded_cover(): void {
         global $CFG, $SESSION;
@@ -490,9 +449,6 @@ final class observers_test extends \advanced_testcase {
     /**
      * Tests that manually removing a user from a target group re-adds the user
      * if they are still a member of a source group (subset mode).
-     *
-     * @covers \local_groupmerge\local\observers::group_member_removed
-     * @covers \local_groupmerge\local\utils::handle_group_member_removed
      */
     public function test_group_member_removed_from_target_readded_subset(): void {
         global $CFG, $SESSION;
@@ -533,9 +489,6 @@ final class observers_test extends \advanced_testcase {
     /**
      * Tests that removing a user from a target group does NOT re-add the user
      * if they are not a member of any source group.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_removed
-     * @covers \local_groupmerge\local\utils::handle_group_member_removed
      */
     public function test_group_member_removed_from_target_not_in_source(): void {
         global $CFG;
@@ -570,9 +523,6 @@ final class observers_test extends \advanced_testcase {
      *
      * Regression test for Bug 1.1: Cover-mode removal was too aggressive — it did not check
      * whether the user was still in another source group of the same mapping.
-     *
-     * @covers \local_groupmerge\local\observers::group_member_removed
-     * @covers \local_groupmerge\local\utils::handle_group_member_removed
      */
     public function test_group_member_removed_cover_still_in_other_source(): void {
         global $CFG;

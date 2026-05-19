@@ -18,6 +18,7 @@ namespace local_groupmerge\external;
 
 use local_groupmerge\local\group_syncer;
 use local_groupmerge\local\utils;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the delete_mapping external function.
@@ -26,13 +27,11 @@ use local_groupmerge\local\utils;
  * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_groupmerge\external\delete_mapping
  */
+#[CoversClass(\local_groupmerge\external\delete_mapping::class)]
 final class delete_mapping_test extends \advanced_testcase {
     /**
      * Tests that a valid mapping is successfully deleted via the external API.
-     *
-     * @covers \local_groupmerge\external\delete_mapping::execute
      */
     public function test_delete_mapping_success(): void {
         global $DB;
@@ -62,9 +61,7 @@ final class delete_mapping_test extends \advanced_testcase {
 
     /**
      * Tests that deleting a mapping removes all associated records
-     * (mapping, targetgroup, sourcegroup).
-     *
-     * @covers \local_groupmerge\external\delete_mapping::execute
+     * (mapping, sourcegroup).
      */
     public function test_delete_mapping_removes_all_records(): void {
         global $DB;
@@ -98,8 +95,6 @@ final class delete_mapping_test extends \advanced_testcase {
 
     /**
      * Tests that deleting a non-existent mapping throws a dml_missing_record_exception.
-     *
-     * @covers \local_groupmerge\external\delete_mapping::execute
      */
     public function test_delete_mapping_invalid_id_throws_exception(): void {
         $this->resetAfterTest();
@@ -114,8 +109,6 @@ final class delete_mapping_test extends \advanced_testcase {
 
     /**
      * Tests that a user without the manage capability cannot delete a mapping.
-     *
-     * @covers \local_groupmerge\external\delete_mapping::execute
      */
     public function test_delete_mapping_without_capability_throws_exception(): void {
         $this->resetAfterTest();

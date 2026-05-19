@@ -17,6 +17,7 @@
 namespace local_groupmerge\local;
 
 use local_groupmerge\hook\restrict_target_groups;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for utils::get_mapping_ids_with_restricted_target_groups.
@@ -25,8 +26,8 @@ use local_groupmerge\hook\restrict_target_groups;
  * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_groupmerge\local\utils::get_mapping_ids_with_restricted_target_groups
  */
+#[CoversClass(\local_groupmerge\local\utils::class)]
 final class remove_mappings_with_restricted_target_groups_test extends \advanced_testcase {
     /**
      * Test that no mappings are removed when the hook returns no restricted groups.

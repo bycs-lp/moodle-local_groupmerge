@@ -15,6 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace local_groupmerge\hook;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+
 /**
  * Unit tests for the restrict_target_groups hook class.
  *
@@ -22,8 +25,8 @@ namespace local_groupmerge\hook;
  * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_groupmerge\hook\restrict_target_groups
  */
+#[CoversClass(\local_groupmerge\hook\restrict_target_groups::class)]
 final class restrict_target_groups_test extends \advanced_testcase {
     /**
      * Test that get_courseid returns the course id passed to the constructor.

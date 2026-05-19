@@ -18,6 +18,7 @@ namespace local_groupmerge\output;
 
 use local_groupmerge\local\group_syncer;
 use local_groupmerge\local\utils;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the mapping_table output class.
@@ -26,8 +27,8 @@ use local_groupmerge\local\utils;
  * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_groupmerge\output\mapping_table
  */
+#[CoversClass(\local_groupmerge\output\mapping_table::class)]
 final class mapping_table_test extends \advanced_testcase {
     /**
      * Test that export_for_template returns correct data for a course without any mappings.

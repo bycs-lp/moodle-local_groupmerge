@@ -18,6 +18,7 @@ namespace local_groupmerge\form;
 
 use local_groupmerge\hook\restrict_target_groups;
 use local_groupmerge\local\utils;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Unit tests for the mapping_form validation logic.
@@ -26,8 +27,8 @@ use local_groupmerge\local\utils;
  * @copyright  2026 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \local_groupmerge\form\mapping_form::validation
  */
+#[CoversClass(\local_groupmerge\form\mapping_form::class)]
 final class mapping_form_test extends \advanced_testcase {
     /**
      * Helper: create a mapping_form instance for the given course and call validation().
