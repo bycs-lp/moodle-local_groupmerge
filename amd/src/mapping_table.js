@@ -58,8 +58,8 @@ export const init = () => {
  */
 const openMappingForm = (courseid, mappingid) => {
     const title = mappingid
-        ? getString('editlink', 'local_groupmerge')
-        : getString('addlink', 'local_groupmerge');
+        ? getString('editmapping', 'local_groupmerge')
+        : getString('addmapping', 'local_groupmerge');
 
     const modalForm = new ModalForm({
         formClass: FORM_CLASS,
@@ -78,8 +78,8 @@ const openMappingForm = (courseid, mappingid) => {
  */
 const deleteMappingWithConfirmation = async(mappingid) => {
     try {
-        const confirmMessage = await getString('deletelink_confirm', 'local_groupmerge');
-        const confirmTitle = await getString('deletelink', 'local_groupmerge');
+        const confirmMessage = await getString('deletemapping_confirm', 'local_groupmerge');
+        const confirmTitle = await getString('deletemapping', 'local_groupmerge');
         const deleteLabel = await getString('delete');
 
         await Notification.saveCancelPromise(confirmTitle, confirmMessage, deleteLabel);

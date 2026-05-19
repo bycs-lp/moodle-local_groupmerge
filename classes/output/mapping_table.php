@@ -106,9 +106,9 @@ class mapping_table implements renderable, templatable {
         $data->courseid = $this->courseid;
         $data->canaddmapping = count(groups_get_all_groups($this->courseid)) >= 2;
         $data->mappings = $grouped;
-        $mappinghelpicon = new help_icon('linktype', 'local_groupmerge');
+        $mappinghelpicon = new help_icon('mappingtype', 'local_groupmerge');
         $data->helpicon = $mappinghelpicon->export_for_template($output);
-        $namehelpicon = new help_icon('linkname', 'local_groupmerge');
+        $namehelpicon = new help_icon('mappingname', 'local_groupmerge');
         $data->namehelpicon = $namehelpicon->export_for_template($output);
 
         // Build resolved (transitive) mappings for the second table.

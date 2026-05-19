@@ -124,7 +124,7 @@ final class mapping_form_test extends \advanced_testcase {
 
         $this->assertArrayHasKey('targetgroupid', $errors);
         $this->assertStringContainsString(
-            get_string('error_targetalreadylinked', 'local_groupmerge'),
+            get_string('error_targetalreadymapped', 'local_groupmerge'),
             $errors['targetgroupid']
         );
     }
@@ -159,7 +159,7 @@ final class mapping_form_test extends \advanced_testcase {
 
         $this->assertArrayHasKey('sourcegroupids', $errors);
         $this->assertStringContainsString(
-            get_string('error_circular_link', 'local_groupmerge'),
+            get_string('error_circular_mapping', 'local_groupmerge'),
             $errors['sourcegroupids']
         );
     }

@@ -22,26 +22,26 @@
  * @author    Philipp Memmel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$string['addlink'] = 'Add group link';
-$string['deletelink'] = 'Delete group link';
-$string['deletelink_confirm'] = 'Are you sure you want to delete this group link? Members will no longer be synchronised.';
+$string['addmapping'] = 'Add group link';
+$string['deletemapping'] = 'Delete group link';
+$string['deletemapping_confirm'] = 'Are you sure you want to delete this group link? Members will no longer be synchronised.';
 $string['editgroupsettings'] = 'Group "{$a}" – click to edit group settings';
-$string['editlink'] = 'Edit group link';
-$string['error_circular_link'] = 'This link would create a circular dependency (the target group is transitively a source group of one of the selected source groups).';
+$string['editmapping'] = 'Edit group link';
+$string['error_circular_mapping'] = 'This mapping would create a circular dependency (the target group is transitively a source group of one of the selected source groups).';
 $string['error_target_unallowed'] = 'This group cannot be used as a target group: {$a}';
-$string['error_targetalreadylinked'] = 'This group already has a link. Please edit the existing link instead.';
+$string['error_targetalreadymapped'] = 'This group already has a mapping. Please edit the existing mapping instead.';
 $string['error_targetinsource'] = 'The target group must not be one of the source groups.';
 $string['groupmerge:manage'] = 'Manage group links';
-$string['linkname'] = 'Name';
-$string['linkname_help'] = 'An optional name for this group link. Use it to describe the purpose of the link, e.g. "All tutors".';
-$string['links_title'] = 'Group links';
-$string['linktype'] = 'Type';
-$string['linktype_help'] = 'Choose the link type. "Cover" means the target group will contain exactly the members of all source groups (extra members will be removed). "Subset" means source group members will be added to the target group, but existing extra members will be kept.';
 $string['managegroups'] = 'Manage groups';
 $string['managemembers'] = '{$a} group members – click to add or remove members';
+$string['mappingname'] = 'Name';
+$string['mappingname_help'] = 'An optional name for this group link. Use it to describe the purpose of the link, e.g. "All tutors".';
 $string['mappings_removed_by_restriction'] = 'The following group links have been automatically removed because their target group is no longer available: {$a}';
+$string['mappings_title'] = 'Group links';
+$string['mappingtype'] = 'Type';
+$string['mappingtype_help'] = 'Choose the link type. "Cover" means the target group will contain exactly the members of all source groups (extra members will be removed). "Subset" means source group members will be added to the target group, but existing extra members will be kept.';
 $string['member_readded'] = 'The member was automatically re-added to the group "{$a->groupname}" because a group link requires it. If you do not want this, please <a href="{$a->configurl}">remove the corresponding group link</a>.';
-$string['nolinks'] = 'No group links defined yet.';
+$string['nomappings'] = 'No group links defined yet.';
 $string['notenoughgroups'] = '"Merge Groups" requires at least 2 groups in this course. Please create more groups first.';
 $string['plugin_desc'] = 'This plugin lets you link groups together so that members are automatically synchronised. When you create a group link, all members of the selected source groups are added to the target group. If someone is later added to or removed from a source group, the target group is updated automatically.';
 $string['pluginname'] = 'Merge Groups';

@@ -51,12 +51,12 @@
 {{/canaddmapping}}
 {{#canaddmapping}}
 <p class="text-muted mb-3">{{#str}} plugin_desc, local_groupmerge {{/str}}</p>
-<h4>{{#str}} links_title, local_groupmerge {{/str}}</h4>
+<h4>{{#str}} mappings_title, local_groupmerge {{/str}}</h4>
 <div class="d-flex justify-content-end mb-2">
     <button type="button" class="btn btn-primary" data-action="addmapping"
-            aria-label="{{#str}} addlink, local_groupmerge {{/str}}"
-            title="{{#str}} addlink, local_groupmerge {{/str}}">
-        {{#pix}} t/add, core {{/pix}} {{#str}} addlink, local_groupmerge {{/str}}
+            aria-label="{{#str}} addmapping, local_groupmerge {{/str}}"
+            title="{{#str}} addmapping, local_groupmerge {{/str}}">
+        {{#pix}} t/add, core {{/pix}} {{#str}} addmapping, local_groupmerge {{/str}}
     </button>
 </div>
 <div class="table-responsive">
@@ -71,13 +71,13 @@
     <thead>
         <tr>
             <th scope="col">
-                {{#str}} linkname, local_groupmerge {{/str}}
+                {{#str}} mappingname, local_groupmerge {{/str}}
                 {{#namehelpicon}}{{> core/help_icon}}{{/namehelpicon}}
             </th>
             <th scope="col">{{#str}} sourcegroups, local_groupmerge {{/str}}</th>
             <th scope="col">{{#str}} targetgroup, local_groupmerge {{/str}}</th>
             <th scope="col" class="text-center text-nowrap">
-                {{#str}} linktype, local_groupmerge {{/str}}
+                {{#str}} mappingtype, local_groupmerge {{/str}}
                 {{#helpicon}}{{> core/help_icon}}{{/helpicon}}
             </th>
             <th scope="col" class="text-nowrap">{{#str}} actions {{/str}}</th>
@@ -128,7 +128,7 @@
         {{/mappings}}
         {{^mappings}}
         <tr>
-            <td colspan="5">{{#str}} nolinks, local_groupmerge {{/str}}</td>
+            <td colspan="5">{{#str}} nomappings, local_groupmerge {{/str}}</td>
         </tr>
         {{/mappings}}
     </tbody>

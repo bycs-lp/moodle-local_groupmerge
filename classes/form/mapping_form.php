@@ -56,10 +56,10 @@ class mapping_form extends dynamic_form {
         $mform->addElement(
             'text',
             'name',
-            get_string('linkname', 'local_groupmerge')
+            get_string('mappingname', 'local_groupmerge')
         );
         $mform->setType('name', PARAM_TEXT);
-        $mform->addHelpButton('name', 'linkname', 'local_groupmerge');
+        $mform->addHelpButton('name', 'mappingname', 'local_groupmerge');
 
         $groups = groups_get_all_groups($courseid);
         $groupoptions = [];
@@ -129,10 +129,10 @@ class mapping_form extends dynamic_form {
         $mform->addElement(
             'select',
             'type',
-            get_string('linktype', 'local_groupmerge'),
+            get_string('mappingtype', 'local_groupmerge'),
             $typeoptions
         );
-        $mform->addHelpButton('type', 'linktype', 'local_groupmerge');
+        $mform->addHelpButton('type', 'mappingtype', 'local_groupmerge');
         $mform->setDefault('type', group_syncer::TYPE_SUBSET);
         $mform->setType('type', PARAM_INT);
     }
@@ -259,7 +259,7 @@ class mapping_form extends dynamic_form {
         if ($mappingid === 0) {
             $existingtarget = $DB->record_exists('local_groupmerge_mapping', ['targetgroupid' => $targetgroupid]);
             if ($existingtarget) {
-                $errors['targetgroupid'] = get_string('error_targetalreadylinked', 'local_groupmerge');
+                $errors['targetgroupid'] = get_string('error_targetalreadymapped', 'local_groupmerge');
             }
 
             // Validate that the target group is not disallowed by a hook subscriber.
@@ -293,7 +293,7 @@ class mapping_form extends dynamic_form {
             );
 
             if (utils::has_circular_mapping(array_merge($existingmappings, $newmappings))) {
-                $errors['sourcegroupids'] = get_string('error_circular_link', 'local_groupmerge');
+                $errors['sourcegroupids'] = get_string('error_circular_mapping', 'local_groupmerge');
             }
         }
 
