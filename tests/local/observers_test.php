@@ -65,7 +65,6 @@ final class observers_test extends \advanced_testcase {
 
         // The mapping must still exist.
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
-        $this->assertTrue($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
 
         // Only source group B should remain.
         $sourcerecords = $DB->get_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]);
@@ -106,7 +105,6 @@ final class observers_test extends \advanced_testcase {
 
         // The mapping must be fully removed.
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
     }
 
@@ -150,7 +148,6 @@ final class observers_test extends \advanced_testcase {
         groups_delete_group($groupa->id);
 
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid1]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid1]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid1]));
         // Mapping 2 must be untouched.
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid2]));
@@ -191,7 +188,6 @@ final class observers_test extends \advanced_testcase {
         // Delete source group B — mapping now has no sources and must be fully removed.
         groups_delete_group($groupb->id);
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
     }
 
@@ -236,10 +232,8 @@ final class observers_test extends \advanced_testcase {
 
         // All mappings for the course must be removed.
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid1]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid1]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid1]));
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid2]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid2]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid2]));
     }
 

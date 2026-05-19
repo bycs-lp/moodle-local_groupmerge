@@ -84,15 +84,14 @@ class utils {
         global $DB;
 
         $sql = "SELECT m.id AS mappingid, m.name AS mappingname, m.type,
-                       tg.targetgroupid, g_target.name AS targetgroupname,
-                       sg.sourcegroupid, g_source.name AS sourcegroupname
+                       m.targetgroupid, gt.name AS targetgroupname,
+                       gmsg.sourcegroupid, gs.name AS sourcegroupname
                   FROM {local_groupmerge_mapping} m
-                  JOIN {local_groupmerge_targetgroup} tg ON tg.mappingid = m.id
-                  JOIN {groups} g_target ON g_target.id = tg.targetgroupid
-                  JOIN {local_groupmerge_sourcegroup} sg ON sg.mappingid = m.id
-                  JOIN {groups} g_source ON g_source.id = sg.sourcegroupid
+                  JOIN {groups} gt ON gt.id = m.targetgroupid
+                  JOIN {local_groupmerge_sourcegroup} gmsg ON gmsg.mappingid = m.id
+                  JOIN {groups} gs ON gs.id = gmsg.sourcegroupid
                  WHERE m.courseid = :courseid
-              ORDER BY g_target.name, g_source.name";
+              ORDER BY gt.name, gs.name";
 
         $records = $DB->get_recordset_sql($sql, ['courseid' => $courseid]);
 
@@ -144,9 +143,8 @@ class utils {
     public static function get_mapping_records_for_course(int $courseid): array {
         global $DB;
 
-        $sql = "SELECT sg.id, m.id AS mappingid, sg.sourcegroupid, tg.targetgroupid, m.type
+        $sql = "SELECT sg.id, m.id AS mappingid, sg.sourcegroupid, m.targetgroupid, m.type
                   FROM {local_groupmerge_mapping} m
-                  JOIN {local_groupmerge_targetgroup} tg ON tg.mappingid = m.id
                   JOIN {local_groupmerge_sourcegroup} sg ON sg.mappingid = m.id
                  WHERE m.courseid = :courseid";
         return $DB->get_records_sql($sql, ['courseid' => $courseid]);
@@ -215,10 +213,8 @@ class utils {
         $sourcegroupmappingrecords = self::get_sourcegroup_mappings($groupid);
         foreach ($sourcegroupmappingrecords as $mappingrecord) {
             // A source group has a new member, add to target group.
-            $targetgroups = self::get_targetgroups_for_mapping((int) $mappingrecord->mappingid);
-            foreach ($targetgroups as $targetgroup) {
-                groups_add_member((int) $targetgroup->targetgroupid, $userid);
-            }
+            $targetgroupid = self::get_targetgroupid_for_mappingid((int) $mappingrecord->mappingid);
+            groups_add_member($targetgroupid, $userid);
         }
     }
 
@@ -244,7 +240,7 @@ class utils {
         $sourcegroupmappingrecords = self::get_sourcegroup_mappings($groupid);
         foreach ($sourcegroupmappingrecords as $sourcegrouprecord) {
             $mappingid = (int) $sourcegrouprecord->mappingid;
-            $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], 'id, type', MUST_EXIST);
+            $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], 'id, type, targetgroupid', MUST_EXIST);
 
             // Only propagate removal for cover-mode mappings.
             if ((int) $mapping->type !== group_syncer::TYPE_COVER) {
@@ -264,16 +260,13 @@ class utils {
                 continue;
             }
 
-            $targetgroups = self::get_targetgroups_for_mapping($mappingid);
-            foreach ($targetgroups as $targetgroup) {
-                groups_remove_member((int) $targetgroup->targetgroupid, $userid);
-            }
+            groups_remove_member((int) $mapping->targetgroupid, $userid);
         }
 
         // Case 2: The group is a target group — re-add the user if still in any source group.
         $targetgroupmappingrecords = self::get_targetgroup_mappings($groupid);
         foreach ($targetgroupmappingrecords as $targetgrouprecord) {
-            $mappingid = (int) $targetgrouprecord->mappingid;
+            $mappingid = (int) $targetgrouprecord->id;
             $sourcegroups = self::get_sourcegroups_for_mapping($mappingid);
             foreach ($sourcegroups as $sourcegroup) {
                 if (groups_is_member((int) $sourcegroup->sourcegroupid, $userid)) {
@@ -281,12 +274,11 @@ class utils {
                     groups_add_member($groupid, $userid);
 
                     // Notify the current user that the member was re-added by the plugin.
-                    $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], 'id, courseid', MUST_EXIST);
-                    $group = groups_get_group($groupid, 'id, name', MUST_EXIST);
                     $configurl = new \moodle_url(
                         '/local/groupmerge/groupmerge_config.php',
-                        ['courseid' => (int) $mapping->courseid]
+                        ['courseid' => (int) $targetgrouprecord->courseid]
                     );
+                    $group = groups_get_group($groupid, 'id, name', MUST_EXIST);
                     $a = new \stdClass();
                     $a->groupname = $group->name;
                     $a->configurl = $configurl->out(false);
@@ -318,25 +310,25 @@ class utils {
     /**
      * Get all targetgroup records where the given group is a target group.
      *
-     * Returns records including the mappingid.
+     * Returns mapping records from local_groupmerge_mapping.
      *
      * @param int $groupid The target group id
-     * @return array Array of targetgroup records
+     * @return array Array of mapping records
      */
     public static function get_targetgroup_mappings(int $groupid): array {
         global $DB;
-        return $DB->get_records('local_groupmerge_targetgroup', ['targetgroupid' => $groupid]);
+        return $DB->get_records('local_groupmerge_mapping', ['targetgroupid' => $groupid]);
     }
 
     /**
-     * Get the target group records for a given mapping.
+     * Get the target group id for a given mapping.
      *
      * @param int $mappingid The mapping id
-     * @return array Array of targetgroup records
+     * @return int The target group id
      */
-    public static function get_targetgroups_for_mapping(int $mappingid): array {
+    public static function get_targetgroupid_for_mappingid(int $mappingid): int {
         global $DB;
-        return $DB->get_records('local_groupmerge_targetgroup', ['mappingid' => $mappingid]);
+        return (int) $DB->get_field('local_groupmerge_mapping', 'targetgroupid', ['id' => $mappingid], MUST_EXIST);
     }
 
     /**
@@ -362,7 +354,7 @@ class utils {
         $userids = [];
         $targetgrouprecords = self::get_targetgroup_mappings($groupid);
         foreach ($targetgrouprecords as $targetgrouprecord) {
-            $sourcegroups = self::get_sourcegroups_for_mapping((int) $targetgrouprecord->mappingid);
+            $sourcegroups = self::get_sourcegroups_for_mapping((int) $targetgrouprecord->id);
             foreach ($sourcegroups as $sourcegroup) {
                 $userids[] = groups_get_members((int) $sourcegroup->sourcegroupid, 'u.id');
             }
@@ -401,18 +393,12 @@ class utils {
 
         $mappingrecord = new stdClass();
         $mappingrecord->courseid = $courseid;
+        $mappingrecord->targetgroupid = $targetgroupid;
         $mappingrecord->name = $name;
         $mappingrecord->type = $type;
         $mappingrecord->timecreated = $now;
         $mappingrecord->timemodified = $now;
         $mappingid = $DB->insert_record('local_groupmerge_mapping', $mappingrecord);
-
-        $targetrecord = new stdClass();
-        $targetrecord->mappingid = $mappingid;
-        $targetrecord->targetgroupid = $targetgroupid;
-        $targetrecord->timecreated = $now;
-        $targetrecord->timemodified = $now;
-        $DB->insert_record('local_groupmerge_targetgroup', $targetrecord);
 
         foreach ($sourcegroupids as $sourcegroupid) {
             $sourcerecord = new stdClass();
@@ -609,9 +595,9 @@ class utils {
         global $DB;
 
         // Step 1: Delete complete mappings where this group was the target.
-        $targetrecords = $DB->get_records('local_groupmerge_targetgroup', ['targetgroupid' => $groupid]);
+        $targetrecords = $DB->get_records('local_groupmerge_mapping', ['targetgroupid' => $groupid]);
         foreach ($targetrecords as $record) {
-            self::delete_mapping((int) $record->mappingid);
+            self::delete_mapping((int) $record->id);
         }
 
         // Step 2: Remove sourcegroup entries referencing this group (mapping itself stays).
@@ -677,14 +663,13 @@ class utils {
     }
 
     /**
-     * Delete a complete mapping including all its target and source group associations.
+     * Delete a complete mapping including all its source group associations.
      *
      * @param int $mappingid The mapping id to delete
      */
     public static function delete_mapping(int $mappingid): void {
         global $DB;
         $DB->delete_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]);
-        $DB->delete_records('local_groupmerge_targetgroup', ['mappingid' => $mappingid]);
         $DB->delete_records('local_groupmerge_mapping', ['id' => $mappingid]);
     }
 }

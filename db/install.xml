@@ -8,6 +8,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="targetgroupid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="type" TYPE="int" LENGTH="2" NOTNULL="true" SEQUENCE="false" COMMENT="Mapping type: 1 = subset, 2 = cover"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -16,24 +17,8 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="targetgroupid" TYPE="foreign-unique" FIELDS="targetgroupid" REFTABLE="groups" REFFIELDS="id"/>
       </KEYS>
-    </TABLE>
-    <TABLE NAME="local_groupmerge_targetgroup" COMMENT="Links a mapping to its target group">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="mappingid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="targetgroupid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="mappingid" TYPE="foreign" FIELDS="mappingid" REFTABLE="local_groupmerge_mapping" REFFIELDS="id"/>
-        <KEY NAME="targetgroupid" TYPE="foreign" FIELDS="targetgroupid" REFTABLE="groups" REFFIELDS="id"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="mappingid_targetgroupid" UNIQUE="true" FIELDS="mappingid, targetgroupid"/>
-      </INDEXES>
     </TABLE>
     <TABLE NAME="local_groupmerge_sourcegroup" COMMENT="Links a mapping to its source groups">
       <FIELDS>

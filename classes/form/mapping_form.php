@@ -68,9 +68,7 @@ class mapping_form extends dynamic_form {
 
         if ($mappingid > 0) {
             // Edit mode: target group is fixed and cannot be changed.
-            $targetgroups = utils::get_targetgroups_for_mapping($mappingid);
-            $targetgroup = reset($targetgroups);
-            $currenttargetgroupid = $targetgroup ? (int) $targetgroup->targetgroupid : 0;
+            $currenttargetgroupid = utils::get_targetgroupid_for_mappingid($mappingid);
 
             $mform->addElement('hidden', 'targetgroupid', $currenttargetgroupid);
             $mform->setType('targetgroupid', PARAM_INT);
@@ -213,11 +211,7 @@ class mapping_form extends dynamic_form {
                 array_map(fn($record) => (int) $record->sourcegroupid, $sourcerecords)
             );
 
-            $targetrecords = utils::get_targetgroups_for_mapping($mappingid);
-            $targetrecord = reset($targetrecords);
-            if ($targetrecord) {
-                $data['targetgroupid'] = (int) $targetrecord->targetgroupid;
-            }
+            $data['targetgroupid'] = utils::get_targetgroupid_for_mappingid($mappingid);
         }
 
         $this->set_data($data);
@@ -262,7 +256,7 @@ class mapping_form extends dynamic_form {
 
         // Add mode: the chosen target group must not already have a mapping.
         if ($mappingid === 0) {
-            $existingtarget = $DB->record_exists('local_groupmerge_targetgroup', ['targetgroupid' => $targetgroupid]);
+            $existingtarget = $DB->record_exists('local_groupmerge_mapping', ['targetgroupid' => $targetgroupid]);
             if ($existingtarget) {
                 $errors['targetgroupid'] = get_string('error_targetalreadylinked', 'local_groupmerge');
             }

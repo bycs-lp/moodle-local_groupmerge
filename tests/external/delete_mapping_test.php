@@ -86,7 +86,6 @@ final class delete_mapping_test extends \advanced_testcase {
 
         // Verify all records exist before deletion.
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
-        $this->assertTrue($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
         $this->assertEquals(2, $DB->count_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
 
         $this->setUser($user);
@@ -94,7 +93,6 @@ final class delete_mapping_test extends \advanced_testcase {
 
         // All associated records must be gone.
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
     }
 

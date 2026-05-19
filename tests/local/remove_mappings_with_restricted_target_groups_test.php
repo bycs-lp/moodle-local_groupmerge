@@ -94,7 +94,6 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
 
         // Mapping and all associated records should be gone.
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
     }
 
@@ -144,7 +143,6 @@ final class remove_mappings_with_restricted_target_groups_test extends \advanced
 
         // Mapping 2 should still exist.
         $this->assertTrue($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid2]));
-        $this->assertTrue($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid2]));
         $this->assertTrue($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid2]));
     }
 

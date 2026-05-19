@@ -597,11 +597,8 @@ final class utils_test extends \advanced_testcase {
         $this->assertGreaterThan(0, (int) $mapping->timecreated);
         $this->assertGreaterThan(0, (int) $mapping->timemodified);
 
-        // Verify target group record.
-        $targetrecords = $DB->get_records('local_groupmerge_targetgroup', ['mappingid' => $mappingid]);
-        $this->assertCount(1, $targetrecords);
-        $targetrecord = reset($targetrecords);
-        $this->assertEquals($groupc->id, $targetrecord->targetgroupid);
+        // Verify target group is stored in mapping record.
+        $this->assertEquals($groupc->id, (int) $mapping->targetgroupid);
 
         // Verify source group records.
         $sourcerecords = $DB->get_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]);
@@ -664,10 +661,8 @@ final class utils_test extends \advanced_testcase {
         $this->assertEquals(group_syncer::TYPE_COVER, (int) $mapping->type);
 
         // Verify target group is unchanged.
-        $targetrecords = $DB->get_records('local_groupmerge_targetgroup', ['mappingid' => $mappingid]);
-        $this->assertCount(1, $targetrecords);
-        $targetrecord = reset($targetrecords);
-        $this->assertEquals($groupc->id, $targetrecord->targetgroupid);
+        $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $mappingid], '*', MUST_EXIST);
+        $this->assertEquals($groupc->id, (int) $mapping->targetgroupid);
 
         // Verify source groups were replaced.
         $sourcerecords = $DB->get_records('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]);
@@ -779,7 +774,6 @@ final class utils_test extends \advanced_testcase {
         utils::delete_mapping($mappingid);
 
         $this->assertFalse($DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid]));
-        $this->assertFalse($DB->record_exists('local_groupmerge_targetgroup', ['mappingid' => $mappingid]));
         $this->assertFalse($DB->record_exists('local_groupmerge_sourcegroup', ['mappingid' => $mappingid]));
     }
 
