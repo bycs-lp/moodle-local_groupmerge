@@ -34,7 +34,7 @@ Feature: Group merge member synchronisation
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to course participants
-    And I set the field "Participants tertiary navigation" to "Merge groups"
+    And I set the field "Participants tertiary navigation" to "Merge Groups"
     # Create mapping: Group C <- Group A, Group B (Cover).
     And I click on "Add group link" "button"
     And I set the field "target group" to "Group C"
@@ -52,7 +52,7 @@ Feature: Group merge member synchronisation
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to course participants
-    And I set the field "Participants tertiary navigation" to "Merge groups"
+    And I set the field "Participants tertiary navigation" to "Merge Groups"
     # Create mapping: Group C <- Group A (Cover).
     And I click on "Add group link" "button"
     And I set the field "target group" to "Group C"

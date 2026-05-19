@@ -34,7 +34,7 @@ Feature: Group merge mapping management
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
     When I navigate to course participants
-    And I set the field "Participants tertiary navigation" to "Merge groups"
+    And I set the field "Participants tertiary navigation" to "Merge Groups"
     Then I should see "Group links"
     And I should see "Add group link"
 
@@ -49,14 +49,14 @@ Feature: Group merge mapping management
     When I log in as "neteacher"
     And I am on "Course 1" course homepage
     And I navigate to course participants
-    Then the "Participants tertiary navigation" select box should not contain "Merge groups"
+    Then the "Participants tertiary navigation" select box should not contain "Merge Groups"
 
   @javascript
   Scenario: Teacher creates a new cover mapping
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to course participants
-    And I set the field "Participants tertiary navigation" to "Merge groups"
+    And I set the field "Participants tertiary navigation" to "Merge Groups"
     When I click on "Add group link" "button"
     And I set the field "target group" to "Group C"
     And I set the field "source groups" to "Group A,Group B"
@@ -71,7 +71,7 @@ Feature: Group merge mapping management
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to course participants
-    And I set the field "Participants tertiary navigation" to "Merge groups"
+    And I set the field "Participants tertiary navigation" to "Merge Groups"
     # First create a mapping.
     And I click on "Add group link" "button"
     And I set the field "target group" to "Group C"
@@ -98,7 +98,7 @@ Feature: Group merge mapping management
     When I log in as "teacher1"
     And I am on "Course 2" course homepage
     And I navigate to course participants
-    And I set the field "Participants tertiary navigation" to "Merge groups"
+    And I set the field "Participants tertiary navigation" to "Merge Groups"
     Then I should see "requires at least 2 groups"
     And "Add group link" "button" should not exist
 
@@ -107,7 +107,7 @@ Feature: Group merge mapping management
     Given I log in as "teacher1"
     And I am on "Course 1" course homepage
     And I navigate to course participants
-    And I set the field "Participants tertiary navigation" to "Merge groups"
+    And I set the field "Participants tertiary navigation" to "Merge Groups"
     # First create a mapping: Group C <- Group A (Cover).
     And I click on "Add group link" "button"
     And I set the field "target group" to "Group C"
