@@ -37,7 +37,7 @@ $string['managemembers'] = '{$a} group members – click to add or remove member
 $string['mappingname'] = 'Name';
 $string['mappingname_help'] = 'An optional name for this group link. Use it to describe the purpose of the link, e.g. "All tutors".';
 $string['mappings_removed_by_restriction'] = 'The following group links have been automatically removed because their target group is no longer available: {$a}';
-$string['mappings_title'] = 'Group links';
+$string['mappings_title'] = 'Manage Group links';
 $string['mappingtype'] = 'Type';
 $string['mappingtype_help'] = 'Choose the link type. "Cover" means the target group will contain exactly the members of all source groups (extra members will be removed). "Subset" means source group members will be added to the target group, but existing extra members will be kept.';
 $string['member_readded'] = 'The member was automatically re-added to the group "{$a->groupname}" because a group link requires it. If you do not want this, please <a href="{$a->configurl}">remove the corresponding group link</a>.';
@@ -45,7 +45,7 @@ $string['nomappings'] = 'No group links defined yet.';
 $string['notenoughgroups'] = '"Merge Groups" requires at least 2 groups in this course. Please create more groups first.';
 $string['plugin_desc'] = 'This plugin lets you link groups together so that members are automatically synchronised. When you create a group link, all members of the selected source groups are added to the target group. If someone is later added to or removed from a source group, the target group is updated automatically.';
 $string['pluginname'] = 'Merge Groups';
-$string['plugintitle'] = 'Merge groups';
+$string['plugintitle'] = 'Merge Groups';
 $string['privacy:metadata'] = 'This plugin does not store any personal data';
 $string['resolvedmappings_desc'] = 'When group links are chained (e.g. Group A feeds into Group B, and Group B feeds into Group C), this table shows you the complete picture: for each target group, it lists all groups whose members will actually end up in that target — including indirect ones.';
 $string['resolvedmappingstitle'] = 'Overview: Where do the members come from?';
