@@ -85,6 +85,22 @@ final class utils_test extends \advanced_testcase {
                 ],
                 'expected' => false,
             ],
+            'target_has_no_outgoing_edges' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 2],
+                    ['sourcegroupid' => 3, 'targetgroupid' => 4],
+                ],
+                'expected' => false,
+            ],
+            'target_reachable_via_long_chain' => [
+                'mappings' => [
+                    ['sourcegroupid' => 1, 'targetgroupid' => 2],
+                    ['sourcegroupid' => 2, 'targetgroupid' => 3],
+                    ['sourcegroupid' => 3, 'targetgroupid' => 4],
+                    ['sourcegroupid' => 4, 'targetgroupid' => 1],
+                ],
+                'expected' => true,
+            ],
         ];
     }
 

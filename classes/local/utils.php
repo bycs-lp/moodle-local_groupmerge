@@ -153,52 +153,67 @@ class utils {
     /**
      * Checks whether the given set of mappings contains a circular dependency.
      *
-     * Each mapping is an associative array with integer keys 'sourcegroupid' and 'targetgroupid'.
-     * A cycle means that some group would transitively become its own source group.
+     * Exploits the domain constraint that each group can be the target of at most one mapping
+     * (enforced by a unique key on targetgroupid). Instead of running a generic full-graph
+     * cycle detection, the method applies a targeted check per target node:
+     *
+     * 1. Build the directed graph (source → target) from all provided mappings.
+     * 2. For each unique target node T with its source nodes S1, S2, …:
+     *    a) Check the out-degree of T: if T does not appear as a source anywhere in the graph,
+     *       no cycle can pass through this target — skip it.
+     *    b) If T has outgoing edges, run a DFS starting only from T. If any of its source
+     *       nodes Si is reachable from T, a cycle exists.
+     * 3. Return true as soon as any cycle is found, false if none exists.
      *
      * @param array $mappings Mappings to check as [['sourcegroupid' => int, 'targetgroupid' => int], ...]
      * @return bool true if a circular dependency exists, false otherwise
      */
     public static function has_circular_mapping(array $mappings): bool {
+        if (empty($mappings)) {
+            return false;
+        }
+
         // Build directed graph: source -> [targets].
         $graph = [];
+        // Collect sources per target.
+        $targettosources = [];
         foreach ($mappings as $mapping) {
             $src = (int) $mapping['sourcegroupid'];
             $tgt = (int) $mapping['targetgroupid'];
             $graph[$src][] = $tgt;
+            $targettosources[$tgt][$src] = true;
         }
 
-        // Detect cycles via DFS with an explicit recursion stack.
-        $visited = [];
-        $instack = [];
-        $hascycle = false;
-
-        $dfs = function (int $node) use (&$dfs, &$graph, &$visited, &$instack, &$hascycle): void {
-            $visited[$node] = true;
-            $instack[$node] = true;
-            foreach ($graph[$node] ?? [] as $neighbor) {
-                if ($hascycle) {
-                    return;
-                }
-                if (!isset($visited[$neighbor])) {
-                    $dfs($neighbor);
-                } else if (!empty($instack[$neighbor])) {
-                    $hascycle = true;
-                }
+        // For each unique target, check if it can reach any of its own sources.
+        foreach ($targettosources as $targetid => $sourceset) {
+            // If the target node has no outgoing edges, no cycle is possible via this target.
+            if (empty($graph[$targetid])) {
+                continue;
             }
-            $instack[$node] = false;
-        };
 
-        foreach (array_keys($graph) as $node) {
-            if (!isset($visited[$node])) {
-                $dfs($node);
-            }
-            if ($hascycle) {
-                break;
+            // DFS from target node: check if any of its source nodes is reachable.
+            $visited = [];
+            $stack = [$targetid];
+
+            while (!empty($stack)) {
+                $node = array_pop($stack);
+                if (isset($visited[$node])) {
+                    continue;
+                }
+                $visited[$node] = true;
+
+                foreach ($graph[$node] ?? [] as $neighbor) {
+                    if (isset($sourceset[$neighbor])) {
+                        return true;
+                    }
+                    if (!isset($visited[$neighbor])) {
+                        $stack[] = $neighbor;
+                    }
+                }
             }
         }
 
-        return $hascycle;
+        return false;
     }
 
     /**
