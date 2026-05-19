@@ -59,6 +59,7 @@ class mapping_form extends dynamic_form {
             get_string('linkname', 'local_groupmerge')
         );
         $mform->setType('name', PARAM_TEXT);
+        $mform->addHelpButton('name', 'linkname', 'local_groupmerge');
 
         $groups = groups_get_all_groups($courseid);
         $groupoptions = [];

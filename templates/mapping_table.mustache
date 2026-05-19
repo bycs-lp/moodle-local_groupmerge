@@ -70,7 +70,10 @@
     </colgroup>
     <thead>
         <tr>
-            <th scope="col">{{#str}} linkname, local_groupmerge {{/str}}</th>
+            <th scope="col">
+                {{#str}} linkname, local_groupmerge {{/str}}
+                {{#namehelpicon}}{{> core/help_icon}}{{/namehelpicon}}
+            </th>
             <th scope="col">{{#str}} sourcegroups, local_groupmerge {{/str}}</th>
             <th scope="col">{{#str}} targetgroup, local_groupmerge {{/str}}</th>
             <th scope="col" class="text-center text-nowrap">

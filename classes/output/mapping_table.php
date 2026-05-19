@@ -108,6 +108,8 @@ class mapping_table implements renderable, templatable {
         $data->mappings = $grouped;
         $mappinghelpicon = new help_icon('linktype', 'local_groupmerge');
         $data->helpicon = $mappinghelpicon->export_for_template($output);
+        $namehelpicon = new help_icon('linkname', 'local_groupmerge');
+        $data->namehelpicon = $namehelpicon->export_for_template($output);
 
         // Build resolved (transitive) mappings for the second table.
         $resolved = utils::get_resolved_mappings_for_course($this->courseid);

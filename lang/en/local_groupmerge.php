@@ -33,6 +33,7 @@ $string['error_targetalreadylinked'] = 'This group already has a link. Please ed
 $string['error_targetinsource'] = 'The target group must not be one of the source groups.';
 $string['groupmerge:manage'] = 'Manage group links';
 $string['linkname'] = 'Name';
+$string['linkname_help'] = 'An optional name for this group link. Use it to describe the purpose of the link, e.g. "All tutors".';
 $string['links_title'] = 'Group links';
 $string['linktype'] = 'Type';
 $string['linktype_help'] = 'Choose the link type. "Cover" means the target group will contain exactly the members of all source groups (extra members will be removed). "Subset" means source group members will be added to the target group, but existing extra members will be kept.';
