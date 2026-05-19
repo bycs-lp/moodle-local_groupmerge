@@ -689,6 +689,47 @@ class utils {
     }
 
     /**
+     * Get the ids of all groups in a course that are available as mapping targets.
+     *
+     * A group is available if it is not already used as a target in an existing mapping
+     * and not restricted by subscribers of the {@see restrict_target_groups} hook.
+     *
+     * @param int $courseid The course id
+     * @param ?restrict_target_groups $hook An already-dispatched hook instance to reuse.
+     *                                      If null, the hook will be dispatched internally.
+     * @return int[] Array of available target group ids
+     */
+    public static function get_available_target_groupids(int $courseid, ?restrict_target_groups $hook = null): array {
+        global $CFG;
+        require_once($CFG->dirroot . '/group/lib.php');
+
+        $allgroups = groups_get_all_groups($courseid);
+
+        // Determine which groups are already used as targets.
+        $mappings = self::get_group_mappings_with_group_name($courseid);
+        $usedtargetids = [];
+        foreach ($mappings as $mapping) {
+            $usedtargetids[$mapping->targetgroup->id] = true;
+        }
+
+        // Determine which groups are restricted by hook subscribers.
+        if ($hook === null) {
+            $hook = new restrict_target_groups($courseid);
+            \core\di::get(\core\hook\manager::class)->dispatch($hook);
+        }
+        $restrictedids = $hook->get_unallowed_targetgroupids();
+
+        $available = [];
+        foreach ($allgroups as $group) {
+            if (!isset($usedtargetids[$group->id]) && !array_key_exists($group->id, $restrictedids)) {
+                $available[] = (int) $group->id;
+            }
+        }
+
+        return $available;
+    }
+
+    /**
      * Check whether a new mapping can be created for a course.
      *
      * A new mapping can be created when the course has at least 2 groups AND at least one group
@@ -707,25 +748,6 @@ class utils {
             return false;
         }
 
-        // Determine which groups are already used as targets.
-        $mappings = self::get_group_mappings_with_group_name($courseid);
-        $usedtargetids = [];
-        foreach ($mappings as $mapping) {
-            $usedtargetids[$mapping->targetgroup->id] = true;
-        }
-
-        // Determine which groups are restricted by hook subscribers.
-        $hook = new restrict_target_groups($courseid);
-        \core\di::get(\core\hook\manager::class)->dispatch($hook);
-        $restrictedids = $hook->get_unallowed_targetgroupids();
-
-        // Check if at least one group is available as target.
-        foreach ($allgroups as $group) {
-            if (!isset($usedtargetids[$group->id]) && !array_key_exists($group->id, $restrictedids)) {
-                return true;
-            }
-        }
-
-        return false;
+        return !empty(self::get_available_target_groupids($courseid));
     }
 }

@@ -247,4 +247,64 @@ final class mapping_form_test extends \advanced_testcase {
 
         $this->assertEmpty($errors);
     }
+
+    /**
+     * Test that the target group select excludes groups already used as targets and hook-restricted groups.
+     */
+    public function test_target_select_excludes_used_and_restricted_groups(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+
+        $data = $this->getDataGenerator()->get_plugin_generator('local_groupmerge')->create_course_with_groups(4);
+        $course = $data['course'];
+        $groups = $data['groups'];
+
+        // Create an existing mapping: Group 1 is already a target.
+        utils::create_mapping(
+            $course->id,
+            $groups['Group 1']->id,
+            [$groups['Group 2']->id]
+        );
+
+        // Restrict Group 3 via hook.
+        $restrictedid = $groups['Group 3']->id;
+        $this->redirectHook(restrict_target_groups::class, function (restrict_target_groups $hook) use ($restrictedid) {
+            $hook->add_unallowed_groupid($restrictedid, 'reserved by test');
+        });
+
+        $user = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $this->setUser($user);
+
+        $PAGE->set_url('/local/groupmerge/groupmerge_config.php', ['courseid' => $course->id]);
+
+        // Instantiate form in add mode via anonymous subclass to access protected _form.
+        $formdata = [
+            'courseid' => (string) $course->id,
+            'mappingid' => '0',
+        ];
+        $form = new class(null, null, 'post', '', [], true, $formdata) extends mapping_form {
+            /**
+             * Expose the internal MoodleQuickForm for testing.
+             *
+             * @return \MoodleQuickForm
+             */
+            public function get_mform(): \MoodleQuickForm {
+                return $this->_form;
+            }
+        };
+
+        // Get the target group select element and extract option values.
+        $element = $form->get_mform()->getElement('targetgroupid');
+        $optionvalues = array_map(fn($opt) => (int) $opt['attr']['value'], $element->_options);
+
+        // Group 1 (already a target) must not be in the options.
+        $this->assertNotContains((int) $groups['Group 1']->id, $optionvalues);
+
+        // Group 3 (restricted by hook) must not be in the options.
+        $this->assertNotContains((int) $groups['Group 3']->id, $optionvalues);
+
+        // Group 2 and Group 4 should be available.
+        $this->assertContains((int) $groups['Group 2']->id, $optionvalues);
+        $this->assertContains((int) $groups['Group 4']->id, $optionvalues);
+    }
 }

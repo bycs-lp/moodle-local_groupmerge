@@ -811,65 +811,63 @@ final class utils_test extends \advanced_testcase {
         // Only one group — still not enough.
         $this->getDataGenerator()->create_group(['courseid' => $course->id]);
         $this->assertFalse(utils::can_add_mapping($course->id));
-    }
 
-    /**
-     * Tests {@see utils::can_add_mapping} returns true when at least one target group is available.
-     */
-    public function test_can_add_mapping_available_target(): void {
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
+        // Two groups — now it should be possible.
         $this->getDataGenerator()->create_group(['courseid' => $course->id]);
-        $this->getDataGenerator()->create_group(['courseid' => $course->id]);
-
         $this->assertTrue(utils::can_add_mapping($course->id));
     }
 
     /**
-     * Tests {@see utils::can_add_mapping} returns false when all groups are already used as targets.
+     * Tests {@see utils::get_available_target_groupids} returns all groups when no mappings exist.
      */
-    public function test_can_add_mapping_all_targets_used(): void {
+    public function test_get_available_target_groupids_no_mappings(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
         $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
         $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
-
-        // Map A <- B, so A is used as target. B is also used as target via another mapping would exhaust all.
-        // With only 2 groups: A is target, B is source. B is still available as target.
-        utils::create_mapping($course->id, $groupa->id, [$groupb->id], group_syncer::TYPE_COVER);
-        // B is still available as target.
-        $this->assertTrue(utils::can_add_mapping($course->id));
-
-        // Now also use B as target.
         $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
-        utils::create_mapping($course->id, $groupb->id, [$groupc->id], group_syncer::TYPE_COVER);
-        // Now C is still available as target.
-        $this->assertTrue(utils::can_add_mapping($course->id));
 
-        // Use C as target too — now all groups are used.
-        utils::create_mapping($course->id, $groupc->id, [$groupa->id], group_syncer::TYPE_SUBSET);
-        $this->assertFalse(utils::can_add_mapping($course->id));
+        $available = utils::get_available_target_groupids($course->id);
+
+        $this->assertCount(3, $available);
+        $this->assertContains((int) $groupa->id, $available);
+        $this->assertContains((int) $groupb->id, $available);
+        $this->assertContains((int) $groupc->id, $available);
     }
 
     /**
-     * Tests {@see utils::can_add_mapping} returns false when remaining groups are restricted by hook.
+     * Tests {@see utils::get_available_target_groupids} excludes groups already used as targets.
      */
-    public function test_can_add_mapping_restricted_by_hook(): void {
+    public function test_get_available_target_groupids_excludes_used_targets(): void {
         $this->resetAfterTest();
 
         $course = $this->getDataGenerator()->create_course();
         $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
         $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
 
-        // Use A as target in a mapping. B is the only remaining candidate.
+        // A is used as target.
         utils::create_mapping($course->id, $groupa->id, [$groupb->id], group_syncer::TYPE_COVER);
 
-        // Without restriction, B is available as target.
-        $this->assertTrue(utils::can_add_mapping($course->id));
+        $available = utils::get_available_target_groupids($course->id);
 
-        // Restrict B via hook redirect — now no target is available.
+        $this->assertNotContains((int) $groupa->id, $available);
+        $this->assertContains((int) $groupb->id, $available);
+        $this->assertContains((int) $groupc->id, $available);
+    }
+
+    /**
+     * Tests {@see utils::get_available_target_groupids} excludes groups restricted by hook.
+     */
+    public function test_get_available_target_groupids_excludes_hook_restricted(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupc = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
         $restrictedbid = $groupb->id;
         $this->redirectHook(
             \local_groupmerge\hook\restrict_target_groups::class,
@@ -878,6 +876,36 @@ final class utils_test extends \advanced_testcase {
             }
         );
 
-        $this->assertFalse(utils::can_add_mapping($course->id));
+        $available = utils::get_available_target_groupids($course->id);
+
+        $this->assertContains((int) $groupa->id, $available);
+        $this->assertNotContains((int) $groupb->id, $available);
+        $this->assertContains((int) $groupc->id, $available);
+    }
+
+    /**
+     * Tests {@see utils::get_available_target_groupids} returns empty when all groups are used or restricted.
+     */
+    public function test_get_available_target_groupids_none_available(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $groupa = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+        $groupb = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        // A is used as target, B is restricted by hook.
+        utils::create_mapping($course->id, $groupa->id, [$groupb->id], group_syncer::TYPE_COVER);
+
+        $restrictedbid = $groupb->id;
+        $this->redirectHook(
+            \local_groupmerge\hook\restrict_target_groups::class,
+            function (\local_groupmerge\hook\restrict_target_groups $hook) use ($restrictedbid) {
+                $hook->add_unallowed_groupid($restrictedbid, 'test restriction');
+            }
+        );
+
+        $available = utils::get_available_target_groupids($course->id);
+
+        $this->assertEmpty($available);
     }
 }

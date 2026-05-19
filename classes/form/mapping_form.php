@@ -80,12 +80,13 @@ class mapping_form extends dynamic_form {
                 $groupoptions[$currenttargetgroupid] ?? $currenttargetgroupid
             );
         } else {
-            // Add mode: user selects the target group.
-            // Dispatch hook to allow other plugins to restrict available target groups.
+            // This is the "Add" mode: user selects the target group.
+            // Dispatch hook once and reuse for both filtering and info display.
             $hook = new restrict_target_groups($courseid);
             \core\di::get(\core\hook\manager::class)->dispatch($hook);
-            $unallowedtargetgroupids = $hook->get_unallowed_targetgroupids();
-            $targetgroupoptions = array_diff_key($groupoptions, $unallowedtargetgroupids);
+
+            $availableids = array_flip(utils::get_available_target_groupids($courseid, $hook));
+            $targetgroupoptions = array_intersect_key($groupoptions, $availableids);
 
             $mform->addElement(
                 'select',
@@ -98,6 +99,7 @@ class mapping_form extends dynamic_form {
             $mform->setType('targetgroupid', PARAM_INT);
 
             // Show info about disallowed target groups grouped by reason.
+            $unallowedtargetgroupids = $hook->get_unallowed_targetgroupids();
             if (!empty($unallowedtargetgroupids)) {
                 $unallowedtargetgroupsinfo = new unallowed_targetgroups_info($unallowedtargetgroupids, $groupoptions);
                 $mform->addElement(
