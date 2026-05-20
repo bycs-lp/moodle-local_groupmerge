@@ -54,11 +54,6 @@ class groupmerge_listener {
 
 Restricted groups will be removed from the target group selector. A message is displayed that explains why some groups are not available.
 
-## Requirements
-
-- Moodle 4.4 or later (requires hooks and dependency injection support)
-- At least 2 groups in a course to create a group link
-
 ## Installing via uploaded ZIP file
 
 1. Log in to your Moodle site as an admin and go to _Site administration >
