@@ -285,7 +285,7 @@ final class mapping_form_test extends \advanced_testcase {
             'courseid' => (string) $course->id,
             'mappingid' => '0',
         ];
-        $form = new class(null, null, 'post', '', [], true, $formdata) extends mapping_form {
+        $form = new class (null, null, 'post', '', [], true, $formdata) extends mapping_form {
             /**
              * Expose the internal MoodleQuickForm for testing.
              *
