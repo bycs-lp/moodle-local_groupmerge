@@ -41,7 +41,7 @@ $string['mappingtype'] = 'Typ';
 $string['mappingtype_help'] = 'Wählen Sie den Verknüpfungstyp. „Abdeckung" bedeutet, dass die Zielgruppe exakt die Mitglieder aller Quellgruppen enthält (zusätzliche Mitglieder werden entfernt). „Teilmenge" bedeutet, dass Quellgruppen-Mitglieder zur Zielgruppe hinzugefügt werden, vorhandene zusätzliche Mitglieder aber erhalten bleiben.';
 $string['member_readded'] = 'Das Mitglied wurde automatisch wieder zur Gruppe „{$a->groupname}" hinzugefügt, da eine Gruppenverknüpfung dies erfordert. Falls Sie das nicht möchten, <a href="{$a->configurl}">entfernen Sie bitte die entsprechende Gruppenverknüpfung</a>.';
 $string['nomappings'] = 'Noch keine Gruppenverknüpfungen definiert.';
-$string['notenoughgroups'] = '„Gruppenverknüpfungen" benötigt mindestens 2 Gruppen in diesem Kurs. Bitte erstellen Sie zuerst weitere Gruppen.';
+$string['notenoughgroups'] = '"Gruppen kombinieren" benötigt mindestens 2 Gruppen in diesem Kurs. Bitte erstellen Sie zuerst weitere Gruppen.';
 $string['plugin_desc'] = 'Dieses Plugin ermöglicht es, Gruppen miteinander zu verknüpfen, sodass Mitglieder automatisch synchronisiert werden. Wenn Sie eine Gruppenverknüpfung erstellen, werden alle Mitglieder der ausgewählten Quellgruppen zur Zielgruppe hinzugefügt. Wird später jemand zu einer Quellgruppe hinzugefügt oder daraus entfernt, wird die Zielgruppe automatisch aktualisiert.';
 $string['pluginname'] = 'Gruppen kombinieren';
 $string['plugintitle'] = 'Gruppen kombinieren';
