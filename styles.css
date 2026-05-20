@@ -1,0 +1,16 @@
+#local_groupmerge-mapping-table .local_groupmerge-col-name {
+    width: 25%;
+}
+
+#local_groupmerge-mapping-table .local_groupmerge-col-targetgroup {
+    width: 30%;
+}
+
+#local_groupmerge-mapping-table .local_groupmerge-col-sourcegroups {
+    width: 30%;
+}
+
+#local_groupmerge-mapping-table .local_groupmerge-col-resolved {
+    width: 50%;
+}
+
