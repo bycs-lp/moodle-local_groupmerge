@@ -109,6 +109,20 @@ class mapping_form extends dynamic_form {
                     $OUTPUT->render($unallowedtargetgroupsinfo)
                 );
             }
+
+            if (empty($targetgroupoptions)) {
+                $mform->removeElement('name');
+                $mform->removeElement('targetgroupid');
+                $mform->addElement(
+                    'static',
+                    'notargetgroups_warning',
+                    get_string('targetgroupid', 'local_groupmerge'),
+                    $OUTPUT->notification(get_string('notargetgroups', 'local_groupmerge'), 'warning', false)
+                );
+                $mform->addElement('hidden', 'targetgroupid', 0);
+                $mform->setType('targetgroupid', PARAM_INT);
+                return;
+            }
         }
 
         $mform->addElement(

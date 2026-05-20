@@ -41,6 +41,7 @@ $string['mappingtype'] = 'Type';
 $string['mappingtype_help'] = 'Choose the link type. "Cover" means the target group will contain exactly the members of all source groups (extra members will be removed). "Subset" means source group members will be added to the target group, but existing extra members will be kept.';
 $string['member_readded'] = 'The member was automatically re-added to the group "{$a->groupname}" because a group link requires it. If you do not want this, please <a href="{$a->configurl}">remove the corresponding group link</a>.';
 $string['nomappings'] = 'No group links defined yet.';
+$string['notargetgroups'] = 'There are no groups available as target group. All groups are either already used as a target or otherwise restricted.';
 $string['notenoughgroups'] = '"Merge Groups" requires at least 2 groups in this course. Please create more groups first.';
 $string['plugin_desc'] = 'This plugin lets you link groups together so that members are automatically synchronised. When you create a group link, all members of the selected source groups are added to the target group. If someone is later added to or removed from a source group, the target group is updated automatically.';
 $string['pluginname'] = 'Merge Groups';

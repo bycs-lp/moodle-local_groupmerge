@@ -102,11 +102,11 @@ class mapping_table implements renderable, templatable {
             $mapping->mappingname = $mapping->mappingname ?? '';
         }
 
-        $canaddmapping = utils::can_add_mapping($this->courseid);
+        $showmappingtable = count(groups_get_all_groups($this->courseid)) >= 2;
 
         $data = new stdClass();
         $data->courseid = $this->courseid;
-        $data->canaddmapping = $canaddmapping;
+        $data->showmappingtable = $showmappingtable;
         $data->mappings = $grouped;
         $mappinghelpicon = new help_icon('mappingtype', 'local_groupmerge');
         $data->helpicon = $mappinghelpicon->export_for_template($output);

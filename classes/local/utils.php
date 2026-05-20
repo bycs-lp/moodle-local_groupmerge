@@ -730,11 +730,15 @@ class utils {
     }
 
     /**
-     * Check whether a new mapping can be created for a course.
+     * Check whether a new mapping can be created for a course by looking at available target group ids.
      *
      * A new mapping can be created when the course has at least 2 groups AND at least one group
      * is available as a target — meaning it is neither already used as a target in an existing
      * mapping nor restricted by subscribers of the {@see restrict_target_groups} hook.
+     *
+     * CARE: There are additional constraints that can lead to the fact that it's effectively still not
+     * possible to really create a mapping for this course. So this function only determines a kind of
+     * "general" ability to create a mapping.
      *
      * @param int $courseid The course id
      * @return bool true if a new mapping can be added, false otherwise

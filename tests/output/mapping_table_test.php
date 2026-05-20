@@ -44,13 +44,13 @@ final class mapping_table_test extends \advanced_testcase {
 
         $this->assertEquals($course->id, $data->courseid);
         $this->assertEmpty($data->mappings);
-        $this->assertFalse($data->canaddmapping);
+        $this->assertFalse($data->showmappingtable);
         $this->assertFalse($data->hasresolvedmappings);
         $this->assertEmpty($data->resolvedmappings);
     }
 
     /**
-     * Test that canaddmapping is true when the course has at least 2 groups.
+     * Test that showmappingtable is true when the course has at least 2 groups.
      */
     public function test_export_for_template_canaddmapping_with_enough_groups(): void {
         global $PAGE;
@@ -62,7 +62,7 @@ final class mapping_table_test extends \advanced_testcase {
         $table = new mapping_table($course->id);
         $result = $table->export_for_template($PAGE->get_renderer('core'));
 
-        $this->assertTrue($result->canaddmapping);
+        $this->assertTrue($result->showmappingtable);
     }
 
     /**
