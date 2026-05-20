@@ -238,8 +238,6 @@ class mapping_form extends dynamic_form {
      * @return array
      */
     public function validation($data, $files): array {
-        global $DB;
-
         $errors = parent::validation($data, $files);
 
         $targetgroupid = (int) $data['targetgroupid'];
@@ -257,19 +255,11 @@ class mapping_form extends dynamic_form {
             $errors['sourcegroupids'] = get_string('error_targetinsource', 'local_groupmerge');
         }
 
-        // Add mode: the chosen target group must not already have a mapping.
+        // Add mode: the chosen target group must be available (not already mapped, not hook-restricted).
         if ($mappingid === 0) {
-            $existingtarget = $DB->record_exists('local_groupmerge_mapping', ['targetgroupid' => $targetgroupid]);
-            if ($existingtarget) {
-                $errors['targetgroupid'] = get_string('error_targetalreadymapped', 'local_groupmerge');
-            }
-
-            // Validate that the target group is not disallowed by a hook subscriber.
-            $hook = new restrict_target_groups($courseid);
-            \core\di::get(\core\hook\manager::class)->dispatch($hook);
-            $unallowed = $hook->get_unallowed_targetgroupids();
-            if (isset($unallowed[$targetgroupid])) {
-                $errors['targetgroupid'] = get_string('error_target_unallowed', 'local_groupmerge', $unallowed[$targetgroupid]);
+            $availabletargetids = utils::get_available_target_groupids($courseid);
+            if (!in_array($targetgroupid, $availabletargetids)) {
+                $errors['targetgroupid'] = get_string('error_targetnotavailable', 'local_groupmerge');
             }
         }
 

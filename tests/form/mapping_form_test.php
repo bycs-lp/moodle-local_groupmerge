@@ -124,7 +124,7 @@ final class mapping_form_test extends \advanced_testcase {
 
         $this->assertArrayHasKey('targetgroupid', $errors);
         $this->assertStringContainsString(
-            get_string('error_targetalreadymapped', 'local_groupmerge'),
+            get_string('error_targetnotavailable', 'local_groupmerge'),
             $errors['targetgroupid']
         );
     }
@@ -191,7 +191,10 @@ final class mapping_form_test extends \advanced_testcase {
         ]);
 
         $this->assertArrayHasKey('targetgroupid', $errors);
-        $this->assertStringContainsString('reserved by test', $errors['targetgroupid']);
+        $this->assertStringContainsString(
+            get_string('error_targetnotavailable', 'local_groupmerge'),
+            $errors['targetgroupid']
+        );
     }
 
     /**

@@ -31,6 +31,7 @@ $string['error_circular_mapping'] = 'Diese Zuordnung würde eine zirkuläre Abh�
 $string['error_target_unallowed'] = 'Diese Gruppe kann nicht als Zielgruppe verwendet werden: {$a}';
 $string['error_targetalreadymapped'] = 'Diese Gruppe hat bereits eine Zuordnung. Bitte bearbeiten Sie die bestehende Zuordnung.';
 $string['error_targetinsource'] = 'Die Zielgruppe darf nicht gleichzeitig eine der Quellgruppen sein.';
+$string['error_targetnotavailable'] = 'Diese Gruppe ist nicht als Zielgruppe verfügbar. Sie wird möglicherweise bereits als Zielgruppe verwendet oder steht aus anderen Gründen nicht zur Verfügung.';
 $string['groupmerge:manage'] = 'Gruppenverknüpfungen verwalten';
 $string['managegroups'] = 'Gruppen verwalten';
 $string['managemembers'] = '{$a} Gruppenmitglieder – klicken, um Mitglieder hinzuzufügen oder zu entfernen';

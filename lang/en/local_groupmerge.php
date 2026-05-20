@@ -31,6 +31,7 @@ $string['error_circular_mapping'] = 'This mapping would create a circular depend
 $string['error_target_unallowed'] = 'This group cannot be used as a target group: {$a}';
 $string['error_targetalreadymapped'] = 'This group already has a mapping. Please edit the existing mapping instead.';
 $string['error_targetinsource'] = 'The target group must not be one of the source groups.';
+$string['error_targetnotavailable'] = 'This group is not available as a target group. It may already be used as a target or otherwise restricted.';
 $string['groupmerge:manage'] = 'Manage group links';
 $string['managegroups'] = 'Manage groups';
 $string['managemembers'] = '{$a} group members – click to add or remove members';
