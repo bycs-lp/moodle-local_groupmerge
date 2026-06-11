@@ -32,9 +32,6 @@ use stdClass;
 class unallowed_targetgroups_info implements renderable, templatable {
     /**
      * Constructor.
-     *
-     * @param array<int, string> $unallowedtargetgroupids Group ids as keys, reasons as values.
-     * @param array<int, string> $groupoptions All available group options (id => name) for name lookup.
      */
     public function __construct(
         /** @var array<int, string> Group ids as keys, reasons as values. */

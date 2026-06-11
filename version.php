@@ -24,9 +24,9 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version  = 2026052000;
+$plugin->version  = 2026061100;
 $plugin->requires = 2026042000;
 $plugin->supported = [502, 502];
-$plugin->release = '0.1';
+$plugin->release = '0.2';
 $plugin->component = 'local_groupmerge';
 $plugin->maturity = MATURITY_BETA;
