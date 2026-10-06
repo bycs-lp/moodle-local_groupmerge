@@ -310,4 +310,52 @@ final class mapping_form_test extends \advanced_testcase {
         $this->assertContains((int) $groups['Group 2']->id, $optionvalues);
         $this->assertContains((int) $groups['Group 4']->id, $optionvalues);
     }
+
+    #[\PHPUnit\Framework\Attributes\Group('baseline')]
+    /**
+     * A mapping of another course cannot be loaded through the own course id.
+     */
+    public function test_foreign_mapping_is_rejected(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator()->get_plugin_generator('local_groupmerge');
+        $own = $generator->create_course_with_groups(2);
+        $foreign = $generator->create_course_with_groups(2);
+        $foreignmappingid = utils::create_mapping(
+            $foreign['course']->id,
+            $foreign['groups']['Group 2']->id,
+            [$foreign['groups']['Group 1']->id],
+            \local_groupmerge\local\group_syncer::TYPE_SUBSET,
+            'Foreign mapping'
+        );
+        $this->setUser($this->getDataGenerator()->create_and_enrol($own['course'], 'editingteacher'));
+
+        $this->expectException(\moodle_exception::class);
+        \core_form\external\dynamic_form::execute(
+            mapping_form::class,
+            http_build_query(['courseid' => $own['course']->id, 'mappingid' => $foreignmappingid])
+        );
+    }
+
+    #[\PHPUnit\Framework\Attributes\Group('baseline')]
+    /**
+     * A mapping of the own course is loaded into the form.
+     */
+    public function test_own_mapping_is_loaded(): void {
+        $this->resetAfterTest();
+        $own = $this->getDataGenerator()->get_plugin_generator('local_groupmerge')->create_course_with_groups(2);
+        $mappingid = utils::create_mapping(
+            $own['course']->id,
+            $own['groups']['Group 2']->id,
+            [$own['groups']['Group 1']->id],
+            \local_groupmerge\local\group_syncer::TYPE_SUBSET,
+            'Own mapping'
+        );
+        $this->setUser($this->getDataGenerator()->create_and_enrol($own['course'], 'editingteacher'));
+
+        $result = \core_form\external\dynamic_form::execute(
+            mapping_form::class,
+            http_build_query(['courseid' => $own['course']->id, 'mappingid' => $mappingid])
+        );
+        $this->assertStringContainsString('Own mapping', $result['html']);
+    }
 }
