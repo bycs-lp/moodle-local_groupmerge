@@ -159,9 +159,15 @@ class mapping_form extends dynamic_form {
      * @return context
      */
     protected function get_context_for_dynamic_submission(): context {
+        global $DB;
+
         $courseid = $this->optional_param('courseid', 0, PARAM_INT);
         if (empty($courseid)) {
             throw new \coding_exception('Course ID is required');
+        }
+        $mappingid = $this->optional_param('mappingid', 0, PARAM_INT);
+        if ($mappingid > 0 && !$DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid, 'courseid' => $courseid])) {
+            throw new \moodle_exception('invalidrecord', 'error', '', 'local_groupmerge_mapping');
         }
         return context_course::instance($courseid);
     }
