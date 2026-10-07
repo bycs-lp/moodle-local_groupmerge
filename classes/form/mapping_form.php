@@ -166,11 +166,8 @@ class mapping_form extends dynamic_form {
             throw new \coding_exception('Course ID is required');
         }
         $mappingid = $this->optional_param('mappingid', 0, PARAM_INT);
-        if ($mappingid > 0) {
-            $mappingcourseid = (int) $DB->get_field('local_groupmerge_mapping', 'courseid', ['id' => $mappingid], MUST_EXIST);
-            if ($mappingcourseid !== $courseid) {
-                throw new \moodle_exception('invalidrecord', 'error', '', 'local_groupmerge_mapping');
-            }
+        if ($mappingid > 0 && !$DB->record_exists('local_groupmerge_mapping', ['id' => $mappingid, 'courseid' => $courseid])) {
+            throw new \moodle_exception('invalidrecord', 'error', '', 'local_groupmerge_mapping');
         }
         return context_course::instance($courseid);
     }

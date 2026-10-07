@@ -330,10 +330,51 @@ final class mapping_form_test extends \advanced_testcase {
         $this->setUser($this->getDataGenerator()->create_and_enrol($own['course'], 'editingteacher'));
 
         $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage(get_string('invalidrecord', 'error', 'local_groupmerge_mapping'));
         \core_form\external\dynamic_form::execute(
             mapping_form::class,
             http_build_query(['courseid' => $own['course']->id, 'mappingid' => $foreignmappingid])
         );
+    }
+
+    /**
+     * A mapping of another course cannot be updated by submitting the form with the own course id.
+     */
+    public function test_foreign_mapping_submission_is_rejected(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator()->get_plugin_generator('local_groupmerge');
+        $own = $generator->create_course_with_groups(2);
+        $foreign = $generator->create_course_with_groups(2);
+        $foreignmappingid = utils::create_mapping(
+            $foreign['course']->id,
+            $foreign['groups']['Group 2']->id,
+            [$foreign['groups']['Group 1']->id],
+            \local_groupmerge\local\group_syncer::TYPE_SUBSET,
+            'Foreign mapping'
+        );
+        $this->setUser($this->getDataGenerator()->create_and_enrol($own['course'], 'editingteacher'));
+
+        $formdata = mapping_form::mock_ajax_submit([
+            'courseid' => $own['course']->id,
+            'mappingid' => $foreignmappingid,
+            'targetgroupid' => $foreign['groups']['Group 2']->id,
+            'sourcegroupids' => [$own['groups']['Group 1']->id],
+            'type' => \local_groupmerge\local\group_syncer::TYPE_COVER,
+            'name' => 'Hijacked',
+        ]);
+        try {
+            \core_form\external\dynamic_form::execute(mapping_form::class, http_build_query($formdata));
+            $this->fail('Expected moodle_exception was not thrown');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('invalidrecord', $e->errorcode, $e->getMessage());
+        }
+
+        $mapping = $DB->get_record('local_groupmerge_mapping', ['id' => $foreignmappingid], '*', MUST_EXIST);
+        $this->assertSame('Foreign mapping', $mapping->name);
+        $this->assertEquals(\local_groupmerge\local\group_syncer::TYPE_SUBSET, $mapping->type);
+        $sourcegroupids = array_map(fn($r) => (int) $r->sourcegroupid, utils::get_sourcegroups_for_mapping($foreignmappingid));
+        $this->assertSame([(int) $foreign['groups']['Group 1']->id], array_values($sourcegroupids));
     }
 
     #[\PHPUnit\Framework\Attributes\Group('baseline')]
