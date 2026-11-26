@@ -22,11 +22,12 @@
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version  = 2026061100;
 $plugin->requires = 2026042000;
-$plugin->supported = [502, 502];
+$plugin->supported = [502, 503];
 $plugin->release = '0.2';
 $plugin->component = 'local_groupmerge';
 $plugin->maturity = MATURITY_BETA;
