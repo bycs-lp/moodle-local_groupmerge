@@ -22,6 +22,7 @@
  * @author    Philipp Memmel
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 $string['addmapping'] = 'Add group link';
 $string['deletemapping'] = 'Delete group link';
 $string['deletemapping_confirm'] = 'Are you sure you want to delete this group link? Members will no longer be synchronised.';
